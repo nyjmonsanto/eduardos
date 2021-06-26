@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
+		<link rel="stylesheet" href="/css/style.css">
+		<title>Employee Account Creation</title>
+	</head>
+	<body>
+		<div id="container" class="container">
+			<div class="row">
+
+				<div class="col align-items-center flex-col sign-up">
+					<div class="form-wrapper align-items-center"></div>
+				</div>
+				
+				<div class="col align-items-center flex-col sign-in">
+					<div class="form-wrapper align-items-center">
+						<form action="/employees/<%= employee.employeeid %>" method="post">
+							<div class="form sign-in">
+								<div>Employee ID</div>
+								<div class="input-group">
+									<i class='bx bxs-user'></i><input type="text" name="employeeid" value="<%= employee.employeeid %>" required readonly>
+								</div>
+								<div>Password</div>
+								<div class="input-group">
+									<i class='bx bxs-lock-alt'></i><input type="password" name="userpassword" value="eduardos">
+								</div>
+								<div>Usertype</div>
+								<div class="input-group">
+									<i class='bx bxs-user-detail'></i>
+									<select name="usertype">
+										<option value="User">User</option>
+										<option value="Admin">Admin</option>
+									</select>
+								</div>
+								<button>Create account</button>
+								<a href="/employees"><p>Return</p></a>
+						</form>
+					</div>
+				</div>
+
+			</div>
+		</div>
+		<div class="row content-row">
+			<div class="col align-items-center flex-col">
+				<div class="img sign-in">
+					<img src="/img/undraw_creative_team_r90h.svg" alt="welcome">
+				</div>
+			</div>
+		</div>
+								</div>
+		<script src="/js/index.js"></script>
+	</body>
+</html>

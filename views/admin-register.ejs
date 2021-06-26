@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
+		<link rel="stylesheet" href="css/style.css">
+		<title>Eduardo's Eatery</title>
+	</head>
+	<body>
+		<div id="container" class="container">
+			<div class="row">
+				<div class="col align-items-center flex-col sign-up">
+					<div class="input-group"><h3>EDUARDO'S EATERY</h3></div>
+					<div class="form-wrapper align-items-center">
+						<form action="/admin-register" method="post">
+							<div class="form sign-up">
+								<div class="input-group">ADMIN REGISTRATION</div>
+								<div class="input-group">
+									<i class='bx bxs-briefcase'></i><input type="text" name="employeerole" value="Owner" readonly required>
+								</div>
+								<div class="input-group">
+									<i class='bx bxs-lock-alt'></i><input type="password" name="userpassword" placeholder="Password" required>
+								</div>
+								<div class="input-group">
+									<i class='bx bxs-user-detail'></i><input type="text" name="usertype" value="Admin" readonly required>
+								</div>
+								<button>Register</button>
+								<p><span>Already have an account?</span><b onclick="toggle()" class="pointer">&nbspLogin</b></p>
+							</div>
+						</form>
+					</div>
+				</div>
+				
+				<div class="col align-items-center flex-col sign-in">
+					<div class="input-group"><h3>EDUARDO'S EATERY</h3></div>
+					<div class="form-wrapper align-items-center">
+						<form action="/admin-login" method="post">
+							<div class="form sign-in">
+								<div class="input-group">ADMIN LOGIN</div>
+								<div class="input-group">
+									<i class='bx bxs-user'></i><input type="text" name="employeeid" placeholder="Employee ID" required>
+								</div>
+								<div class="input-group">
+									<i class='bx bxs-lock-alt'></i><input type="password" name="userpassword" placeholder="Password" required>
+								</div>
+								<button>Login</button>
+								<p><span>Don't have an account?</span><b onclick="toggle()" class="pointer">&nbspRegister</b></p>
+						</form>
+					</div>
+				</div>
+			
+			</div>
+		</div>
+		<div class="row content-row">
+			<div class="col align-items-center flex-col">
+				<div class="img sign-in">
+					<img src="img/undraw_different_love_a3rg.svg" alt="welcome">
+				</div>
+			</div>
+			<div class="col align-items-center flex-col">
+				<div class="img sign-up">
+					<img src="img/undraw_creative_team_r90h.svg" alt="welcome">
+				</div>
+			</div>
+		</div>
+							</div>
+		<script src="js/index.js"></script>
+	</body>
+</html>
