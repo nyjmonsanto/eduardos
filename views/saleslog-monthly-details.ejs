@@ -1,0 +1,338 @@
+<!--
+=========================================================
+* Material Dashboard Dark Edition - v2.1.0
+=========================================================
+
+* Product Page: https://www.creative-tim.com/product/material-dashboard-dark
+* Copyright 2019 Creative Tim (http://www.creative-tim.com)
+
+* Coded by www.creative-tim.com
+
+=========================================================
+
+* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+    <link href="/css/material-dashboard.css?v=2.1.0" rel="stylesheet" />
+  </head>
+  
+  <body class="dark-edition">
+    <div class="wrapper ">
+      <div class="sidebar" data-color="purple" data-background-color="black" data-image="img/sidebar-2.jpg">
+        <div class="logo">
+          <a href="" class="simple-text logo-normal">EDUARDO'S EATERY</a>
+        </div>
+        <div class="sidebar-wrapper">
+          <ul class="nav">
+            <%if (usertype == "Admin") {%>
+              <li class="nav-item">
+                <a class="nav-link" href="/employees"><i class="material-icons">work</i><p>Employees</p></a>
+              </li>
+            <% };%>
+              <li class="nav-item"><a class="nav-link" href="/inventory"><i class="material-icons">inventory</i><p>Inventory</p></a></li>
+              <li class="nav-item"><a class="nav-link" href="/products"><i class="material-icons">fastfood</i><p>Products</p></a></li>
+              <li class="nav-item active"><a class="nav-link" href="/transaction"><i class="material-icons">point_of_sale</i><p>Transaction</p></a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="main-panel">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-transparent navbar-absolute fixed-top " id="navigation-example">
+          <div class="container-fluid">
+            <div class="navbar-wrapper">
+                <div>
+                    <a href="/saleslog-monthlysales"><button type="submit" class="btn btn-danger btn-round"><i class="material-icons">keyboard_return</i>&nbspReturn</button></a>
+                </div>
+            </div>
+            <div class="collapse navbar-collapse justify-content-end">
+              <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/logout">Logout&nbsp<i class="material-icons">logout</i></a></li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+        <!-- End Navbar -->
+        <div class="content">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card card-plain">
+                  <div class="card-header card-header-primary">
+                    <h4 class="card-title mt-0">Monthly Report Details for <%= data[0].date %></h4>
+                    <p class="card-category">Manage Monthly Sales</p>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <thead class="text-primary">
+                          <th>Product ID</th>
+                          <th>Quantity</th>
+                          <th>Subtotal</th>
+                        </thead>
+                        <tbody>
+                          <% post.forEach((sales) => { %>
+                            <tr>
+                                <td><%= sales.product %></td>
+                                <td><%= sales.totalquantity %></td>
+                                <td class="text-danger">₱ <%= sales.subtotalprice %></td>
+                            </tr>
+                          <% }); %>
+                        </tbody>
+                        </tbody>
+                        <tbody>
+                            <tr>
+                                <td></td>
+                                <th>Total Revenue</th>
+                                <th class="text-danger">₱ <%= data[0].totalrevenue %></th>
+                            </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+<!-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+                <footer class="footer">
+                    <div class="container-fluid">
+                        <div class="copyright float-right" id="date">
+
+                        </div>
+                    </div>
+                </footer>
+                <script>
+                    const x = new Date().getFullYear();
+                    let date = document.getElementById('date');
+                    date.innerHTML = '&copy; ' + x + date.innerHTML;
+                </script>
+            </div>
+        </div>
+        
+        <div class="fixed-plugin">
+            <div class="dropdown show-dropdown">
+                <a href="#" data-toggle="dropdown">
+                    <i class="fa fa-cog fa-2x"> </i>
+                </a>
+                <ul class="dropdown-menu">
+                    <li class="header-title"> Sidebar Filters</li>
+                    <li class="adjustments-line">
+                        <a href="javascript:void(0)" class="switch-trigger active-color">
+                            <div class="badge-colors ml-auto mr-auto">
+                                <span class="badge filter badge-purple active" data-color="purple"></span>
+                                <span class="badge filter badge-azure" data-color="azure"></span>
+                                <span class="badge filter badge-green" data-color="green"></span>
+                                <span class="badge filter badge-warning" data-color="orange"></span>
+                                <span class="badge filter badge-danger" data-color="danger"></span>
+                            </div>
+                            <div class="clearfix"></div>
+                        </a>
+                    </li>
+                    <li class="header-title">Images</li>
+                    <li>
+                        <a class="img-holder switch-trigger" href="javascript:void(0)">
+                            <img src="img/sidebar-1.jpg" alt="">
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a class="img-holder switch-trigger" href="javascript:void(0)">
+                            <img src="img/sidebar-2.jpg" alt="">
+                        </a>
+                    </li>
+                    <li>
+                        <a class="img-holder switch-trigger" href="javascript:void(0)">
+                            <img src="img/sidebar-3.jpg" alt="">
+                        </a>
+                    </li>
+                    <li>
+                        <a class="img-holder switch-trigger" href="javascript:void(0)">
+                            <img src="img/sidebar-4.jpg" alt="">
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <script src="js/core/jquery.min.js"></script>
+        <script src="js/core/popper.min.js"></script>
+        <script src="js/core/bootstrap-material-design.min.js"></script>
+        <script src="https://unpkg.com/default-passive-events"></script>
+        <script src="js/plugins/perfect-scrollbar.jquery.min.js"></script>
+        
+        <script async defer src="https://buttons.github.io/buttons.js"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_HERE"></script>
+        <script src="js/plugins/chartist.min.js"></script>
+        <script src="js/plugins/bootstrap-notify.js"></script>
+        <script src="js/material-dashboard.js?v=2.1.0"></script>
+
+  <script>
+    $(document).ready(function() {
+      $().ready(function() {
+        $sidebar = $('.sidebar');
+
+        $sidebar_img_container = $sidebar.find('.sidebar-background');
+
+        $full_page = $('.full-page');
+
+        $sidebar_responsive = $('body > .navbar-collapse');
+
+        window_width = $(window).width();
+
+        $('.fixed-plugin a').click(function(event) {
+          // Alex if we click on switch, stop propagation of the event, so the dropdown will not be hide, otherwise we set the  section active
+          if ($(this).hasClass('switch-trigger')) {
+            if (event.stopPropagation) {
+              event.stopPropagation();
+            } else if (window.event) {
+              window.event.cancelBubble = true;
+            }
+          }
+        });
+
+        $('.fixed-plugin .active-color span').click(function() {
+          $full_page_background = $('.full-page-background');
+
+          $(this).siblings().removeClass('active');
+          $(this).addClass('active');
+
+          var new_color = $(this).data('color');
+
+          if ($sidebar.length != 0) {
+            $sidebar.attr('data-color', new_color);
+          }
+
+          if ($full_page.length != 0) {
+            $full_page.attr('filter-color', new_color);
+          }
+
+          if ($sidebar_responsive.length != 0) {
+            $sidebar_responsive.attr('data-color', new_color);
+          }
+        });
+
+        $('.fixed-plugin .background-color .badge').click(function() {
+          $(this).siblings().removeClass('active');
+          $(this).addClass('active');
+
+          var new_color = $(this).data('background-color');
+
+          if ($sidebar.length != 0) {
+            $sidebar.attr('data-background-color', new_color);
+          }
+        });
+
+        $('.fixed-plugin .img-holder').click(function() {
+          $full_page_background = $('.full-page-background');
+
+          $(this).parent('li').siblings().removeClass('active');
+          $(this).parent('li').addClass('active');
+
+
+          var new_image = $(this).find("img").attr('src');
+
+          if ($sidebar_img_container.length != 0 && $('.switch-sidebar-image input:checked').length != 0) {
+            $sidebar_img_container.fadeOut('fast', function() {
+              $sidebar_img_container.css('background-image', 'url("' + new_image + '")');
+              $sidebar_img_container.fadeIn('fast');
+            });
+          }
+
+          if ($full_page_background.length != 0 && $('.switch-sidebar-image input:checked').length != 0) {
+            var new_image_full_page = $('.fixed-plugin li.active .img-holder').find('img').data('src');
+
+            $full_page_background.fadeOut('fast', function() {
+              $full_page_background.css('background-image', 'url("' + new_image_full_page + '")');
+              $full_page_background.fadeIn('fast');
+            });
+          }
+
+          if ($('.switch-sidebar-image input:checked').length == 0) {
+            var new_image = $('.fixed-plugin li.active .img-holder').find("img").attr('src');
+            var new_image_full_page = $('.fixed-plugin li.active .img-holder').find('img').data('src');
+
+            $sidebar_img_container.css('background-image', 'url("' + new_image + '")');
+            $full_page_background.css('background-image', 'url("' + new_image_full_page + '")');
+          }
+
+          if ($sidebar_responsive.length != 0) {
+            $sidebar_responsive.css('background-image', 'url("' + new_image + '")');
+          }
+        });
+
+        $('.switch-sidebar-image input').change(function() {
+          $full_page_background = $('.full-page-background');
+
+          $input = $(this);
+
+          if ($input.is(':checked')) {
+            if ($sidebar_img_container.length != 0) {
+              $sidebar_img_container.fadeIn('fast');
+              $sidebar.attr('data-image', '#');
+            }
+
+            if ($full_page_background.length != 0) {
+              $full_page_background.fadeIn('fast');
+              $full_page.attr('data-image', '#');
+            }
+
+            background_image = true;
+          } else {
+            if ($sidebar_img_container.length != 0) {
+              $sidebar.removeAttr('data-image');
+              $sidebar_img_container.fadeOut('fast');
+            }
+
+            if ($full_page_background.length != 0) {
+              $full_page.removeAttr('data-image', '#');
+              $full_page_background.fadeOut('fast');
+            }
+
+            background_image = false;
+          }
+        });
+
+        $('.switch-sidebar-mini input').change(function() {
+          $body = $('body');
+
+          $input = $(this);
+
+          if (md.misc.sidebar_mini_active == true) {
+            $('body').removeClass('sidebar-mini');
+            md.misc.sidebar_mini_active = false;
+
+            $('.sidebar .sidebar-wrapper, .main-panel').perfectScrollbar();
+
+          } else {
+
+            $('.sidebar .sidebar-wrapper, .main-panel').perfectScrollbar('destroy');
+
+            setTimeout(function() {
+              $('body').addClass('sidebar-mini');
+
+              md.misc.sidebar_mini_active = true;
+            }, 300);
+          }
+
+          // we simulate the window Resize so the charts will get updated in realtime.
+          var simulateWindowResize = setInterval(function() {
+            window.dispatchEvent(new Event('resize'));
+          }, 180);
+
+          // we stop the simulation of Window Resize after the animations are completed
+          setTimeout(function() {
+            clearInterval(simulateWindowResize);
+          }, 1000);
+
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
