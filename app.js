@@ -42,6 +42,19 @@ app.post("/", urlencodedParser, (req, res) => {
         if(err){
             throw(err);
         }else{
+            connection.query("SELECT * FROM ordertable WHERE DATE(logdate) = CURRENT_DATE ORDER BY orderuuid DESC LIMIT 1", (err, post) => {
+                if(err){
+                    throw(err);
+                }
+
+                if(post[0] == 'NULL'){
+                    req.session.orderid = 1;
+                    req.session.customerid = 1;
+                } else {
+                    req.session.orderid = post[0].orderid + 1;
+                    req.session.customerid = post[0].customerid + 1;
+                }
+            })
             connection.query("SELECT * FROM usertable WHERE employeeid = '"+req.body.employeeid+"'", (err, response) => {
                 if(err){
                     throw(err);
@@ -52,8 +65,6 @@ app.post("/", urlencodedParser, (req, res) => {
                             req.session.logged = true;
                             req.session.employeeid = response[0].employeeid;
                             req.session.usertype = response[0].usertype;
-                            req.session.customerid = 1;
-                            req.session.orderid = 1;
                             if(req.session.usertype == "Admin"){
                                 console.log("success");
                                 res.redirect("/employees");
@@ -81,6 +92,19 @@ app.post("/admin-login", urlencodedParser, (req, res) => {
         if(err){
             throw(err);
         }else{
+            connection.query("SELECT * FROM ordertable WHERE DATE(logdate) = CURRENT_DATE ORDER BY orderuuid DESC LIMIT 1", (err, post) => {
+                if(err){
+                    throw(err);
+                }
+
+                if(post[0] == NULL){
+                    req.session.orderid = 1;
+                    req.session.customerid = 1;
+                } else {
+                    req.session.orderid = post[0].orderid + 1;
+                    req.session.customerid = post[0].customerid + 1;
+                }
+            })
             connection.query("SELECT * FROM usertable WHERE employeeid = '"+req.body.employeeid+"'", (err, response) => {
                 if(err){
                     throw(err);
@@ -91,7 +115,6 @@ app.post("/admin-login", urlencodedParser, (req, res) => {
                             req.session.logged = true;
                             req.session.employeeid = response[0].employeeid;
                             req.session.usertype = response[0].usertype;
-                            req.session.customerid = 1;
                             if(req.session.usertype == "Admin"){
                                 console.log("success");
                                 res.redirect("/employees");
@@ -837,13 +860,21 @@ app.get("/transaction", (req, res) => {
         connection.query("SELECT * FROM producttable", (err, response) => {
             if(err){
                 throw(err);
-            }else{
-                connection.query("SELECT SUM(ordertotalprice) AS total FROM ordertable WHERE customerid = '"+req.session.customerid+"'", (err, data) => {
+            }else{         
+                connection.query("SELECT SUM(ordertotalprice) AS total FROM ordertable WHERE DATE(logdate) = CURRENT_DATE AND customerid = '"+req.session.customerid+"'", (err, data) => {
                     if(err){
                         throw err;
                     }else{
                         // console.log(data[0].total);
-                        res.render("transaction", {data: data[0].total, prodid: 0, customerid: req.session.customerid, prodquant: 0, product: response, values: 0, usertype: req.session.usertype, employeeid: req.session.employeeid, customerid: req.session.customerid});
+                        res.render("transaction", {
+                            data: data[0].total, 
+                            prodid: 0, 
+                            prodquant: 0, 
+                            product: response, 
+                            values: 0, 
+                            usertype: req.session.usertype, 
+                            employeeid: req.session.employeeid,
+                            customerid: req.session.customerid});
                     }
                 });
             }
@@ -856,12 +887,20 @@ app.post("/transaction", urlencodedParser, (req, res) => {
             if(err){
                 throw(err);
             }
-            connection.query("SELECT SUM(ordertotalprice) AS total FROM ordertable WHERE customerid = '"+req.session.customerid+"'", (err, data) => {
+            connection.query("SELECT SUM(ordertotalprice) AS total FROM ordertable WHERE DATE(logdate) = CURRENT_DATE AND customerid = '"+req.session.customerid+"'", (err, data) => {
                 if(err){
                     throw(err);
                 }
                 // console.log(data[0].total);
-                res.render("transaction", {data: data[0].total, prodid: req.body.prodid, customerid: req.session.customerid, prodquant: 0, product: response, values: 0, usertype: req.session.usertype, employeeid: req.session.employeeid, customerid: req.session.customerid});
+                res.render("transaction", {
+                    data: data[0].total, 
+                    prodid: req.body.prodid, 
+                    prodquant: 0, 
+                    product: response, 
+                    values: 0, 
+                    usertype: req.session.usertype, 
+                    employeeid: req.session.employeeid, 
+                    customerid: req.session.customerid});
             });
         });
     }
@@ -896,16 +935,24 @@ app.post("/transaction/:prodid", urlencodedParser, (req, res) => {
             if(err){
                 throw(err);
             }
-            connection.query("SELECT * FROM ordertable WHERE customerid = '"+req.session.customerid+"'", (err, response) => {
+            connection.query("SELECT * FROM ordertable WHERE DATE(logdate) = CURRENT_DATE AND customerid = '"+req.session.customerid+"'", (err, response) => {
                 if(err){
                     throw(err);
                 }
-                connection.query("SELECT SUM(ordertotalprice) AS total FROM ordertable WHERE customerid = '"+req.session.customerid+"'", (err, data) => {
+                connection.query("SELECT SUM(ordertotalprice) AS total FROM ordertable WHERE DATE(logdate) = CURRENT_DATE AND customerid = '"+req.session.customerid+"'", (err, data) => {
                     if(err){
                         throw(err);
                     }
                     // console.log(data[0].total);
-                    res.render("transaction", {data: data[0].total, prodid: 0, customerid: req.session.customerid, prodquant: 0, product: result, values: response, usertype: req.session.usertype, employeeid: req.session.employeeid, customerid: req.session.customerid});
+                    res.render("transaction", {
+                        data: data[0].total, 
+                        prodid: 0, 
+                        prodquant: 0, 
+                        product: result, 
+                        values: response, 
+                        usertype: req.session.usertype, 
+                        employeeid: req.session.employeeid, 
+                        customerid: req.session.customerid});
                 });
             });
         });
@@ -934,7 +981,7 @@ app.get("/invoice", (req, res) => {
 app.get("/saleslog-dailysales", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT DAYNAME(logdate) as dayname, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year, DATE(logdate) as date, SUM(orderquantity) as totalsales, SUM(ordertotalprice) as totalrevenue FROM ordertable GROUP BY date", (err, response) => {
+        connection.query("SELECT DAYNAME(logdate) as dayname, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year, DATE(logdate) as date, SUM(orderquantity) as totalsales, SUM(ordertotalprice) as totalrevenue FROM ordertable GROUP BY date ORDER BY date DESC", (err, response) => {
             if(err){
                 throw(err);
             }else{
@@ -1007,7 +1054,7 @@ app.get("/saleslog-dailysales/:objyear/:objmonth/:objday/:orderid/saleslog-daily
 app.get("/saleslog-monthlysales", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT MONTHNAME(logdate) as month, YEAR(logdate) as year, SUM(orderquantity) as totalsales, SUM(ordertotalprice) as totalrevenue FROM ordertable GROUP BY month, year", (err, response) => {
+        connection.query("SELECT MONTHNAME(logdate) as month, YEAR(logdate) as year, SUM(orderquantity) as totalsales, SUM(ordertotalprice) as totalrevenue FROM ordertable GROUP BY month, year ORDER BY month ASC, year DESC", (err, response) => {
             if(err){
                 throw(err);
             }else{
@@ -1039,7 +1086,7 @@ app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-details", (r
 app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-daily-log", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT DAYNAME(logdate) as dayname, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year, DATE(logdate) as date, SUM(orderquantity) as totalsales, SUM(ordertotalprice) as totalrevenue FROM ordertable GROUP BY date", (err, response) => {
+        connection.query("SELECT DAYNAME(logdate) as dayname, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year, DATE(logdate) as date, SUM(orderquantity) as totalsales, SUM(ordertotalprice) as totalrevenue FROM ordertable WHERE MONTHNAME(logdate) = '"+req.params.objmonth+"' AND YEAR(logdate) = '"+req.params.objyear+"' GROUP BY date ORDER BY date DESC", (err, response) => {
             if(err){
                 throw(err);
             }else{
@@ -1052,7 +1099,7 @@ app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-daily-log", 
 app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-weekly-log", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT sum(orderquantity) as totalsales, sum(ordertotalprice) as totalrevenue, MONTHNAME(logdate) as month, YEAR(logdate) as year, DATE_FORMAT(DATE_ADD(logdate, INTERVAL (-WEEKDAY(logdate)) DAY), '%M %d, %Y') as WeekStart, DATE_FORMAT(DATE_ADD(logdate, INTERVAL (6-WEEKDAY(logdate)) DAY), '%M %d, %Y') as WeekEnd FROM ordertable GROUP BY WeekStart", (err, response) => {
+        connection.query("SELECT sum(orderquantity) as totalsales, sum(ordertotalprice) as totalrevenue, MONTHNAME(logdate) as month, YEAR(logdate) as year, DATE_FORMAT(DATE_ADD(logdate, INTERVAL (-WEEKDAY(logdate)) DAY), '%M %d, %Y') as WeekStart, DATE_FORMAT(DATE_ADD(logdate, INTERVAL (6-WEEKDAY(logdate)) DAY), '%M %d, %Y') as WeekEnd FROM ordertable WHERE MONTHNAME(logdate) = '"+req.params.objmonth+"' AND YEAR(logdate) = '"+req.params.objyear+"' GROUP BY WeekStart ORDER BY WEEK(logdate) DESC", (err, response) => {
             if(err){
                 throw(err);
             }else{
@@ -1065,7 +1112,7 @@ app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-weekly-log",
 app.get("/saleslog-monthlysales/:objyear/:objmonth/:objstart-:objend/saleslog-weekly-log", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT sum(orderquantity) as totalsales, sum(ordertotalprice) as totalrevenue, MONTHNAME(logdate) as month, YEAR(logdate) as year, DAY(logdate) as day, DATE_FORMAT(logdate, '%M %d, %Y - %W') as date, DATE_FORMAT(str_to_date('"+req.params.objstart+"', '%M %d, %Y'), '%M %d, %Y') as WeekStart, DATE_FORMAT(str_to_date('"+req.params.objend+"', '%M %d, %Y'), '%M %d, %Y') as WeekEnd FROM ordertable WHERE DATE(logdate) >= DATE('"+req.params.objstart+"') <= DATE('"+req.params.objend+"') GROUP BY date", (err, response) => {
+        connection.query("SELECT sum(orderquantity) as totalsales, sum(ordertotalprice) as totalrevenue, MONTHNAME(logdate) as month, YEAR(logdate) as year, DAY(logdate) as day, DATE_FORMAT(logdate, '%M %d, %Y - %W') as date, DATE_FORMAT(str_to_date('"+req.params.objstart+"', '%M %d, %Y'), '%M %d, %Y') as WeekStart, DATE_FORMAT(str_to_date('"+req.params.objend+"', '%M %d, %Y'), '%M %d, %Y') as WeekEnd FROM ordertable WHERE  DATE(logdate) BETWEEN str_to_date('"+req.params.objstart+"', '%M %d, %Y') AND str_to_date('"+req.params.objend+"', '%M %d, %Y') AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND YEAR(logdate) = '"+req.params.objyear+"' GROUP BY date ORDER BY date DESC", (err, response) => {
             if(err){
                 throw(err);
             }else{
@@ -1078,11 +1125,11 @@ app.get("/saleslog-monthlysales/:objyear/:objmonth/:objstart-:objend/saleslog-we
 app.get("/saleslog-monthlysales/:objyear/:objmonth/:objstart-:objend/saleslog-weekly-details", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT CONCAT(ordertable.productid, ' - ', producttable.productname) as product, SUM(ordertotalprice) as subtotalprice, SUM(orderquantity) as totalquantity, MONTHNAME(logdate) as month, YEAR(logdate) as year FROM ordertable INNER JOIN producttable ON ordertable.productid=producttable.productid WHERE DATE(logdate) >= DATE('"+req.params.objstart+"') <= DATE('"+req.params.objend+"') GROUP BY ordertable.productid", (err, response) => {
+        connection.query("SELECT CONCAT(ordertable.productid, ' - ', producttable.productname) as product, SUM(ordertotalprice) as subtotalprice, SUM(orderquantity) as totalquantity, MONTHNAME(logdate) as month, YEAR(logdate) as year FROM ordertable INNER JOIN producttable ON ordertable.productid=producttable.productid WHERE  DATE(logdate) BETWEEN str_to_date('"+req.params.objstart+"', '%M %d, %Y') AND str_to_date('"+req.params.objend+"', '%M %d, %Y') AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND YEAR(logdate) = '"+req.params.objyear+"' GROUP BY ordertable.productid", (err, response) => {
             if(err){
                 throw(err);
             }else{
-                connection.query("SELECT SUM(ordertotalprice) as totalrevenue, DATE_FORMAT(str_to_date('"+req.params.objstart+"', '%M %d, %Y'), '%M %d, %Y') as WeekStart, DATE_FORMAT(str_to_date('"+req.params.objend+"', '%M %d, %Y'), '%M %d, %Y') as WeekEnd FROM ordertable WHERE DATE(logdate) >= DATE('"+req.params.objstart+"') <= DATE('"+req.params.objend+"')", (err, data) => {
+                connection.query("SELECT SUM(ordertotalprice) as totalrevenue, DATE_FORMAT(str_to_date('"+req.params.objstart+"', '%M %d, %Y'), '%M %d, %Y') as WeekStart, DATE_FORMAT(str_to_date('"+req.params.objend+"', '%M %d, %Y'), '%M %d, %Y') as WeekEnd FROM ordertable WHERE DATE(logdate) BETWEEN str_to_date('"+req.params.objstart+"', '%M %d, %Y') AND str_to_date('"+req.params.objend+"', '%M %d, %Y') AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND YEAR(logdate) = '"+req.params.objyear+"'", (err, data) => {
                     if(err){
                         throw(err);
                     }else{
