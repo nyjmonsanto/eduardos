@@ -77,6 +77,7 @@ CREATE TABLE `itemlogtable` (
 --
 
 CREATE TABLE `ordertable` (
+  `orderuuid` int(11) NOT NULL,
   `orderid` int(11) NOT NULL,
   `employeeid` int(11) NOT NULL,
   `customerid` int(11) NOT NULL,
