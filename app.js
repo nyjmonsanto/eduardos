@@ -47,12 +47,12 @@ app.post("/", urlencodedParser, (req, res) => {
                     throw(err);
                 }
 
-                if(post[0] == 'NULL'){
-                    req.session.orderid = 1;
-                    req.session.customerid = 1;
-                } else {
+                if(post.length > 0){
                     req.session.orderid = post[0].orderid + 1;
                     req.session.customerid = post[0].customerid + 1;
+                } else {
+                    req.session.orderid = 1;
+                    req.session.customerid = 1;
                 }
             })
             connection.query("SELECT * FROM usertable WHERE employeeid = '"+req.body.employeeid+"'", (err, response) => {
@@ -97,12 +97,12 @@ app.post("/admin-login", urlencodedParser, (req, res) => {
                     throw(err);
                 }
 
-                if(post[0] == NULL){
-                    req.session.orderid = 1;
-                    req.session.customerid = 1;
-                } else {
+                if(post.length > 0){
                     req.session.orderid = post[0].orderid + 1;
                     req.session.customerid = post[0].customerid + 1;
+                } else {
+                    req.session.orderid = 1;
+                    req.session.customerid = 1;
                 }
             })
             connection.query("SELECT * FROM usertable WHERE employeeid = '"+req.body.employeeid+"'", (err, response) => {
