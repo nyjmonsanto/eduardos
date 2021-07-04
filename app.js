@@ -857,7 +857,7 @@ app.put("/products-unavailable/:productid", urlencodedParser, (req, res) => {
 //TRANSACTIONS SECTION
 app.get("/transaction", (req, res) => {
     if(req.session.logged){
-        connection.query("SELECT * FROM producttable", (err, response) => {
+        connection.query("SELECT * FROM producttable WHERE productavailability = 'Available'", (err, response) => {
             if(err){
                 throw(err);
             }else{         
