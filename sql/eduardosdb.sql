@@ -180,7 +180,7 @@ ALTER TABLE `itemlogtable`
 -- Indexes for table `ordertable`
 --
 ALTER TABLE `ordertable`
-  ADD PRIMARY KEY (`orderid`),
+  ADD PRIMARY KEY (`orderuuid`),
   ADD KEY `order_fk1` (`employeeid`),
   ADD KEY `order_fk2` (`productid`);
 
@@ -240,7 +240,7 @@ ALTER TABLE `itemlogtable`
 -- AUTO_INCREMENT for table `ordertable`
 --
 ALTER TABLE `ordertable`
-  MODIFY `orderid` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `orderuuid` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `producttable`
