@@ -42,17 +42,15 @@ app.post("/", urlencodedParser, (req, res) => {
         if(err){
             throw(err);
         }else{
-            connection.query("SELECT * FROM ordertable WHERE DATE(logdate) = CURRENT_DATE ORDER BY orderuuid DESC LIMIT 1", (err, post) => {
+            connection.query("SELECT * FROM ordertable WHERE DATE(logdate) = CURRENT_DATE ORDER BY orderid DESC LIMIT 1", (err, post) => {
                 if(err){
                     throw(err);
                 }
 
                 if(post.length > 0){
-                    req.session.orderid = post[0].orderid + 1;
-                    req.session.customerid = post[0].customerid + 1;
+                    req.session.orderid = post[0].current_date_orderid + 1;
                 } else {
                     req.session.orderid = 1;
-                    req.session.customerid = 1;
                 }
             })
             connection.query("SELECT * FROM usertable WHERE employeeid = '"+req.body.employeeid+"'", (err, response) => {
@@ -92,17 +90,15 @@ app.post("/admin-login", urlencodedParser, (req, res) => {
         if(err){
             throw(err);
         }else{
-            connection.query("SELECT * FROM ordertable WHERE DATE(logdate) = CURRENT_DATE ORDER BY orderuuid DESC LIMIT 1", (err, post) => {
+            connection.query("SELECT * FROM ordertable WHERE DATE(logdate) = CURRENT_DATE ORDER BY orderid DESC LIMIT 1", (err, post) => {
                 if(err){
                     throw(err);
                 }
 
                 if(post.length > 0){
-                    req.session.orderid = post[0].orderid + 1;
-                    req.session.customerid = post[0].customerid + 1;
+                    req.session.orderid = post[0].current_date_orderid + 1;
                 } else {
                     req.session.orderid = 1;
-                    req.session.customerid = 1;
                 }
             })
             connection.query("SELECT * FROM usertable WHERE employeeid = '"+req.body.employeeid+"'", (err, response) => {
@@ -861,13 +857,13 @@ app.get("/transaction", (req, res) => {
             if(err){
                 throw(err);
             }else{         
-                connection.query("SELECT SUM(ordertotalprice) AS total FROM ordertable WHERE DATE(logdate) = CURRENT_DATE AND customerid = '"+req.session.customerid+"'", (err, data) => {
+                connection.query("SELECT totalrevenue FROM ordertable WHERE DATE(logdate) = CURRENT_DATE AND customerid = '"+req.session.customerid+"'", (err, data) => {
                     if(err){
                         throw err;
                     }else{
                         // console.log(data[0].total);
                         res.render("transaction", {
-                            data: data[0].total, 
+                            data: data[0].totalrevenue, 
                             prodid: 0, 
                             prodquant: 0, 
                             product: response, 
@@ -975,13 +971,15 @@ app.get("/invoice", (req, res) => {
         res.render("invoice");
     }
 });
+
+/*----------------------------------------------------------------------------------------------------*/
 //SALES LOG
 
 //DAILY SALES LOG
 app.get("/saleslog-dailysales", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT DAYNAME(logdate) as dayname, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year, DATE(logdate) as date, SUM(orderquantity) as totalsales, SUM(ordertotalprice) as totalrevenue FROM ordertable GROUP BY date ORDER BY date DESC", (err, response) => {
+        connection.query("SELECT DAYNAME(logdate) as dayname, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year, DATE(logdate) as date, SUM(totalquantity) as totalsales, SUM(totalrevenue) as totalrevenue FROM ordertable GROUP BY date ORDER BY date DESC", (err, response) => {
             if(err){
                 throw(err);
             }else{
@@ -994,11 +992,11 @@ app.get("/saleslog-dailysales", (req, res) => {
 app.get("/saleslog-dailysales/:objyear/:objmonth/:objday/saleslog-daily-details", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT CONCAT(ordertable.productid, ' - ', producttable.productname) as product, SUM(ordertotalprice) AS subtotalprice, SUM(orderquantity) AS totalquantity FROM ordertable INNER JOIN producttable ON ordertable.productid=producttable.productid WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"' GROUP BY ordertable.productid", (err, response) => {
+        connection.query("SELECT CONCAT(orderdetails.productid, ' - ', producttable.productname) as product, SUM(ordertotalprice) AS subtotalprice, SUM(orderquantity) AS totalquantity FROM orderdetails INNER JOIN producttable ON orderdetails.productid=producttable.productid INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE YEAR(ordertable.logdate) = '"+req.params.objyear+"' AND MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' AND DAY(ordertable.logdate) = '"+req.params.objday+"' GROUP BY orderdetails.productid", (err, response) => {
             if(err){
                 throw(err);
             }else{
-                connection.query("SELECT SUM(ordertotalprice) AS totalrevenue, DATE_FORMAT(logdate, '%M %d, %Y - %W') as date FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"'", (err, data) => {
+                connection.query("SELECT SUM(totalrevenue) AS totalrevenue, DATE_FORMAT(logdate, '%M %d, %Y - %W') as date FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"'", (err, data) => {
                     if(err){
                         throw(err);
                     }else{
@@ -1012,11 +1010,11 @@ app.get("/saleslog-dailysales/:objyear/:objmonth/:objday/saleslog-daily-details"
 });
 app.get("/saleslog-dailysales/:objyear/:objmonth/:objday/saleslog-daily-log", (req, res) => {
     if(req.session.logged){
-        connection.query("SELECT orderid, employeeid, SUM(orderquantity) as orderquantity, SUM(ordertotalprice) as orderrevenue, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"' GROUP BY orderid", (err, response) => {
+        connection.query("SELECT *, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"'", (err, response) => {
             if(err){
                 throw(err);
             }else{
-                connection.query("SELECT SUM(orderquantity) as totalquantity, SUM(ordertotalprice) AS totalrevenue FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"'", (err, data) => {
+                connection.query("SELECT SUM(totalquantity) as sumquantity, SUM(totalrevenue) AS sumrevenue FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"'", (err, data) => {
                     if(err){
                         throw(err);
                     }else{
@@ -1031,11 +1029,11 @@ app.get("/saleslog-dailysales/:objyear/:objmonth/:objday/saleslog-daily-log", (r
 app.get("/saleslog-dailysales/:objyear/:objmonth/:objday/:orderid/saleslog-daily-order-details", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT orderid, CONCAT(ordertable.productid, ' - ', producttable.productname) as product, SUM(ordertotalprice) AS subtotalprice, SUM(orderquantity) AS totalquantity FROM ordertable INNER JOIN producttable ON ordertable.productid=producttable.productid WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"' AND orderid = '"+req.params.orderid+"' GROUP BY ordertable.productid", (err, response) => {
+        connection.query("SELECT orderdetails.orderid, CONCAT(orderdetails.productid, ' - ', producttable.productname) as product, SUM(ordertotalprice) AS subtotalprice, SUM(orderquantity) AS totalquantity FROM orderdetails INNER JOIN producttable ON orderdetails.productid=producttable.productid INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE YEAR(ordertable.logdate)  = '"+req.params.objyear+"' AND MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' AND DAY(ordertable.logdate) = '"+req.params.objday+"' AND orderdetails.orderid = '"+req.params.orderid+"' GROUP BY orderdetails.productid", (err, response) => {
             if(err){
                 throw(err);
             }else{
-                connection.query("SELECT SUM(ordertotalprice) AS totalprice, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"' AND orderid = '"+req.params.orderid+"'", (err, data) => {
+                connection.query("SELECT totalrevenue, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"' AND orderid = '"+req.params.orderid+"'", (err, data) => {
                     if(err){
                         throw(err);
                     }else{
@@ -1048,13 +1046,11 @@ app.get("/saleslog-dailysales/:objyear/:objmonth/:objday/:orderid/saleslog-daily
     }
 });
 
-
-
 //MONTHLY SALES LOG
 app.get("/saleslog-monthlysales", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT MONTHNAME(logdate) as month, YEAR(logdate) as year, SUM(orderquantity) as totalsales, SUM(ordertotalprice) as totalrevenue FROM ordertable GROUP BY month, year ORDER BY month ASC, year DESC", (err, response) => {
+        connection.query("SELECT MONTHNAME(logdate) as month, YEAR(logdate) as year, SUM(totalquantity) as totalsales, SUM(totalrevenue) as totalrevenue FROM ordertable GROUP BY month, year ORDER BY month ASC, year DESC", (err, response) => {
             if(err){
                 throw(err);
             }else{
@@ -1067,11 +1063,11 @@ app.get("/saleslog-monthlysales", (req, res) => {
 app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-details", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT CONCAT(ordertable.productid, ' - ', producttable.productname) as product, SUM(ordertotalprice) as subtotalprice, SUM(orderquantity) as totalquantity FROM ordertable INNER JOIN producttable ON ordertable.productid=producttable.productid WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' GROUP BY ordertable.productid", (err, response) => {
+        connection.query("SELECT CONCAT(orderdetails.productid, ' - ', producttable.productname) as product, SUM(ordertotalprice) as subtotalprice, SUM(orderquantity) as totalquantity FROM orderdetails INNER JOIN producttable ON orderdetails.productid=producttable.productid INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE YEAR(ordertable.logdate)  = '"+req.params.objyear+"' AND MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' GROUP BY orderdetails.productid", (err, response) => {
             if(err){
                 throw(err);
             }else{
-                connection.query("SELECT SUM(ordertotalprice) as totalrevenue, DATE_FORMAT(logdate, '%M %Y') as date FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"'", (err, data) => {
+                connection.query("SELECT SUM(totalrevenue) AS totalrevenue, DATE_FORMAT(logdate, '%M %Y') as date FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"'", (err, data) => {
                     if(err){
                         throw(err);
                     }else{
@@ -1086,7 +1082,7 @@ app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-details", (r
 app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-daily-log", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT DAYNAME(logdate) as dayname, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year, DATE(logdate) as date, SUM(orderquantity) as totalsales, SUM(ordertotalprice) as totalrevenue FROM ordertable WHERE MONTHNAME(logdate) = '"+req.params.objmonth+"' AND YEAR(logdate) = '"+req.params.objyear+"' GROUP BY date ORDER BY date DESC", (err, response) => {
+        connection.query("SELECT DAYNAME(ordertable.logdate) as dayname, DAY(ordertable.logdate) as day, MONTHNAME(ordertable.logdate) as month, YEAR(ordertable.logdate) as year, DATE(ordertable.logdate) as date, SUM(orderquantity) as totalsales, SUM(ordertotalprice) as totalrevenue FROM orderdetails INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' AND YEAR(ordertable.logdate) = '"+req.params.objyear+"' GROUP BY date ORDER BY date DESC", (err, response) => {
             if(err){
                 throw(err);
             }else{
@@ -1096,10 +1092,12 @@ app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-daily-log", 
         });
     }
 });
+
+//WEEKLY SALES LOG
 app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-weekly-log", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT sum(orderquantity) as totalsales, sum(ordertotalprice) as totalrevenue, MONTHNAME(logdate) as month, YEAR(logdate) as year, DATE_FORMAT(DATE_ADD(logdate, INTERVAL (-WEEKDAY(logdate)) DAY), '%M %d, %Y') as WeekStart, DATE_FORMAT(DATE_ADD(logdate, INTERVAL (6-WEEKDAY(logdate)) DAY), '%M %d, %Y') as WeekEnd FROM ordertable WHERE MONTHNAME(logdate) = '"+req.params.objmonth+"' AND YEAR(logdate) = '"+req.params.objyear+"' GROUP BY WeekStart ORDER BY WEEK(logdate) DESC", (err, response) => {
+        connection.query("SELECT sum(orderquantity) as totalsales, sum(ordertotalprice) as totalrevenue, MONTHNAME(ordertable.logdate) as month, YEAR(ordertable.logdate) as year, DATE_FORMAT(DATE_ADD(ordertable.logdate, INTERVAL (-WEEKDAY(ordertable.logdate)) DAY), '%M %d, %Y') as WeekStart, DATE_FORMAT(DATE_ADD(ordertable.logdate, INTERVAL (6-WEEKDAY(ordertable.logdate)) DAY), '%M %d, %Y') as WeekEnd FROM orderdetails INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' AND YEAR(ordertable.logdate) = '"+req.params.objyear+"' GROUP BY WeekStart ORDER BY WEEK(ordertable.logdate) DESC", (err, response) => {
             if(err){
                 throw(err);
             }else{
@@ -1109,27 +1107,14 @@ app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-weekly-log",
         });
     }
 });
-app.get("/saleslog-monthlysales/:objyear/:objmonth/:objstart-:objend/saleslog-weekly-log", (req, res) => {
-    if(req.session.logged){
-        let object = {};
-        connection.query("SELECT sum(orderquantity) as totalsales, sum(ordertotalprice) as totalrevenue, MONTHNAME(logdate) as month, YEAR(logdate) as year, DAY(logdate) as day, DATE_FORMAT(logdate, '%M %d, %Y - %W') as date, DATE_FORMAT(str_to_date('"+req.params.objstart+"', '%M %d, %Y'), '%M %d, %Y') as WeekStart, DATE_FORMAT(str_to_date('"+req.params.objend+"', '%M %d, %Y'), '%M %d, %Y') as WeekEnd FROM ordertable WHERE  DATE(logdate) BETWEEN str_to_date('"+req.params.objstart+"', '%M %d, %Y') AND str_to_date('"+req.params.objend+"', '%M %d, %Y') AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND YEAR(logdate) = '"+req.params.objyear+"' GROUP BY date ORDER BY date DESC", (err, response) => {
-            if(err){
-                throw(err);
-            }else{
-                object = {post: response, usertype: req.session.usertype};
-                res.render("saleslog-weekly-log", object);
-            }
-        });
-    }
-});
 app.get("/saleslog-monthlysales/:objyear/:objmonth/:objstart-:objend/saleslog-weekly-details", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT CONCAT(ordertable.productid, ' - ', producttable.productname) as product, SUM(ordertotalprice) as subtotalprice, SUM(orderquantity) as totalquantity, MONTHNAME(logdate) as month, YEAR(logdate) as year FROM ordertable INNER JOIN producttable ON ordertable.productid=producttable.productid WHERE  DATE(logdate) BETWEEN str_to_date('"+req.params.objstart+"', '%M %d, %Y') AND str_to_date('"+req.params.objend+"', '%M %d, %Y') AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND YEAR(logdate) = '"+req.params.objyear+"' GROUP BY ordertable.productid", (err, response) => {
+        connection.query("SELECT CONCAT(orderdetails.productid, ' - ', producttable.productname) as product, SUM(ordertotalprice) as subtotalprice, SUM(orderquantity) as totalquantity, MONTHNAME(ordertable.logdate) as month, YEAR(ordertable.logdate) as year FROM orderdetails INNER JOIN producttable ON orderdetails.productid=producttable.productid INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE DATE(ordertable.logdate) BETWEEN str_to_date('"+req.params.objstart+"', '%M %d, %Y') AND str_to_date('"+req.params.objend+"', '%M %d, %Y') AND MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' AND YEAR(ordertable.logdate) = '"+req.params.objyear+"' GROUP BY orderdetails.productid", (err, response) => {
             if(err){
                 throw(err);
             }else{
-                connection.query("SELECT SUM(ordertotalprice) as totalrevenue, DATE_FORMAT(str_to_date('"+req.params.objstart+"', '%M %d, %Y'), '%M %d, %Y') as WeekStart, DATE_FORMAT(str_to_date('"+req.params.objend+"', '%M %d, %Y'), '%M %d, %Y') as WeekEnd FROM ordertable WHERE DATE(logdate) BETWEEN str_to_date('"+req.params.objstart+"', '%M %d, %Y') AND str_to_date('"+req.params.objend+"', '%M %d, %Y') AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND YEAR(logdate) = '"+req.params.objyear+"'", (err, data) => {
+                connection.query("SELECT SUM(totalrevenue) as totalrevenue, DATE_FORMAT(str_to_date('"+req.params.objstart+"', '%M %d, %Y'), '%M %d, %Y') as WeekStart, DATE_FORMAT(str_to_date('"+req.params.objend+"', '%M %d, %Y'), '%M %d, %Y') as WeekEnd FROM ordertable WHERE DATE(logdate) BETWEEN str_to_date('"+req.params.objstart+"', '%M %d, %Y') AND str_to_date('"+req.params.objend+"', '%M %d, %Y') AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND YEAR(logdate) = '"+req.params.objyear+"'", (err, data) => {
                     if(err){
                         throw(err);
                     }else{
@@ -1137,6 +1122,19 @@ app.get("/saleslog-monthlysales/:objyear/:objmonth/:objstart-:objend/saleslog-we
                     res.render("saleslog-weekly-details", object);
                     }
                 });
+            }
+        });
+    }
+});
+app.get("/saleslog-monthlysales/:objyear/:objmonth/:objstart-:objend/saleslog-weekly-log", (req, res) => {
+    if(req.session.logged){
+        let object = {};
+        connection.query("SELECT sum(orderquantity) as totalsales, sum(ordertotalprice) as totalrevenue, MONTHNAME(ordertable.logdate) as month, YEAR(ordertable.logdate) as year, DAY(ordertable.logdate) as day, DATE_FORMAT(ordertable.logdate, '%M %d, %Y - %W') as date, DATE_FORMAT(str_to_date('"+req.params.objstart+"', '%M %d, %Y'), '%M %d, %Y') as WeekStart, DATE_FORMAT(str_to_date('"+req.params.objend+"', '%M %d, %Y'), '%M %d, %Y') as WeekEnd FROM orderdetails INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE DATE(ordertable.logdate) BETWEEN str_to_date('"+req.params.objstart+"', '%M %d, %Y') AND str_to_date('"+req.params.objend+"', '%M %d, %Y') AND MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' AND YEAR(ordertable.logdate) = '"+req.params.objyear+"' GROUP BY date ORDER BY date DESC", (err, response) => {
+            if(err){
+                throw(err);
+            }else{
+                object = {post: response, usertype: req.session.usertype};
+                res.render("saleslog-weekly-log", object);
             }
         });
     }
