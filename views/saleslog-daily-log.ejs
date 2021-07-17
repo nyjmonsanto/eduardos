@@ -81,8 +81,8 @@
                             <tr>
                                 <td><%= sale.orderid %></td>
                                 <td><%= sale.employeeid %></td>
-                                <td><%= sale.orderquantity %></td>
-                                <td class="text-danger">₱ <%= sale.orderrevenue %></td>
+                                <td><%= sale.totalquantity %></td>
+                                <td class="text-danger">₱ <%= sale.totalrevenue %></td>
                                 <td>
                                   <form action="/saleslog-dailysales/<%= post[0].year %>/<%= post[0].month %>/<%= post[0].day %>/<%= sale.orderid %>/saleslog-daily-order-details">
                                     <button type="submit" class="btn btn-warning btn-round">Check</button>
@@ -95,8 +95,8 @@
                           <tr>
                               <td></td>
                               <th>Total</th>
-                              <th><%= data[0].totalquantity %></th>
-                              <th class="text-danger">₱ <%= data[0].totalrevenue %></th>
+                              <th><%= data[0].sumquantity %></th>
+                              <th class="text-danger">₱ <%= data[0].sumrevenue %></th>
                           </tr>
                         </tbody>
                       </table>
