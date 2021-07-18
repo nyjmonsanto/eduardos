@@ -81,8 +81,8 @@
                             <tr>
                                 <td><%= sale.orderid %></td>
                                 <td><%= sale.employeeid %></td>
-                                <td><%= sale.totalquantity %></td>
-                                <td class="text-danger">₱ <%= sale.totalrevenue %></td>
+                                <td><%= sale.ordertotalquantity %></td>
+                                <td class="text-danger">₱ <%= sale.ordertotalprice %></td>
                                 <td>
                                   <form action="/saleslog-dailysales/<%= post[0].year %>/<%= post[0].month %>/<%= post[0].day %>/<%= sale.orderid %>/saleslog-daily-order-details">
                                     <button type="submit" class="btn btn-warning btn-round">Check</button>
