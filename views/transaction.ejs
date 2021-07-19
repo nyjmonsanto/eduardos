@@ -63,90 +63,78 @@
         <!-- End Navbar -->
         <div class="content">
           <div class="container-fluid">
+
             <div class="row">
 
-              <div class="col-md-6">
-                <div class="card">
-                  <div class="card-header card-header-primary">
-                    <h4 class="card-title">Enter Product ID</h4>
-                  </div>
-                  <div class="card-body">
-                    <form action="/transaction" method="post">
-                      <div class="row">
-                        <div class="col-md-3">
-                          <div class="form-group">
-                            <label class="bmd-label-floating">Product ID</label>
-                            <input type="text" name="prodid" value="<%=prodid%>" class="form-control" required>
-                          </div>
-                        </div>
+              <div class="col">
+
+                <div class="row">
+                  <div class="col">
+                    <div class="card">
+                      <div class="card-header card-header-primary">
+                        <h4 class="card-title">Enter Product ID and Order Quantity</h4>
                       </div>
-                      <button type="submit" class="btn btn-primary pull-right">Confirm</button>
-                      <div class="clearfix"></div>
-                    </form>
+                      <div class="card-body">
+                        <form action="/transaction" method="post">
+                          <div class="row">
+                            <div class="col-md-3">
+                              <div class="form-group">
+                                <label class="bmd-label-floating">Product ID</label>
+                                <input type="text" name="prodid" class="form-control" required>
+                              </div>
+                            </div>
+                            <div class="col-md-3">
+                              <div class="form-group">
+                                <label class="bmd-label-floating">Quantity</label>
+                                <input type="number" name="prodquant" class="form-control" required>
+                              </div>
+                            </div>
+                          </div>
+                          <button type="submit" class="btn btn-primary pull-right">ADD TO ORDERS</button>
+                          <div class="clearfix"></div>
+                        </form>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div class="col-md-6">
-                <div class="card">
-                  <div class="card-header card-header-primary">
-                    <h4 class="card-title">Enter Order Quantity</h4>
-                  </div>
-                  <div class="card-body">
-                    <form action="/transaction/<%= prodid %>?_method=post" method="post">
-                      <div class="row">
-                        <div class="col-md-3">
-                          <div class="form-group">
-                            <label class="bmd-label-floating">Quantity</label>
-                            <input type="number" name="prodquant" value="<%=prodquant%>" class="form-control" required>
-                          </div>
+  
+                <div class="row">
+                  <div class="col">
+                    <div class="card">
+                      <div class="card-header card-header-primary">
+                        <h4 class="card-title">Product Information</h4>
+                        <p class="card-category">Manage Orders</p>
+                      </div>
+                      <div class="card-body">
+                        <div class="table-responsive">
+                          <table class="table">
+                            <thead class="text-primary">
+                              <th>Product ID</th>
+                              <th>Name</th>
+                              <th>Price</th>
+                            </thead>
+                            <tbody>
+                              <% for (let i = 0; i < product.length; i++){%>
+                                <tr>
+                                  <td><%= product[i].productid %></td>
+                                  <td><%= product[i].productname %></td>
+                                  <td class="text-danger">₱ <%= product[i].productprice %></td>
+                                </tr>
+                              <%}%>
+                            </tbody>
+                          </table>
                         </div>
                       </div>
-                      <button type="submit" class="btn btn-primary pull-right">ADD TO ORDERS</button>
-                      <div class="clearfix"></div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            
-            </div>
-            
-            <div class="row">
-              
-              <div class="col-md-6">
-                <div class="card">
-                  <div class="card-header card-header-primary">
-                    <h4 class="card-title">Product Information</h4>
-                    <p class="card-category">Manage Orders</p>
-                  </div>
-                  <div class="card-body">
-                    <div class="table-responsive">
-                      <table class="table">
-                        <thead class="text-primary">
-                          <th>Product ID</th>
-                          <th>Name</th>
-                          <th>Price</th>
-                        </thead>
-                        <tbody>
-                          <% for (let i = 0; i < product.length; i++){%>
-                            <tr>
-                              <td><%= product[i].productid %></td>
-                              <td><%= product[i].productname %></td>
-                              <td class="text-danger">₱ <%= product[i].productprice %></td>
-                            </tr>
-                          <%}%>
-                        </tbody>
-                      </table>
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               <div class="col-md-6">
                 <div class="card">
                   <div class="card-header card-header-primary">
                     <h4 class="card-title">Transaction</h4>
-                    <p class="card-category pull-right">Employee ID : <%=employeeid%> &nbsp Customer ID : <%=customerid%></p>
+                    <p class="card-category pull-right">Employee ID : <%=employeeid%> &nbsp Order ID : <%=orderid%></p>
                   </div>
                   <div class="card-body">
                     <div class="table-responsive">
@@ -158,11 +146,11 @@
                           <th>Action</th>
                         </thead>
                         <tbody>
-                          <% for (let i = 0; i < values.length; i++){%>
+                          <% for (let i = 0; i < values.length; i++) {%>
                             <tr>
                               <td><%= values[i].productid %></td>
-                              <td><%= values[i].orderquantity %></td>
-                              <td class="text-danger">₱ <%= values[i].ordertotalprice %></td>
+                              <td><%= values[i].itemquantity %></td>
+                              <td class="text-danger">₱ <%= values[i].itemtotalprice %></td>
                               <td>
                                 <form action="/transaction/<%= values[i].productid %>?_method=delete" method="post">
                                   <button type="submit" class="btn btn-danger btn-round">Remove</button>
@@ -177,7 +165,7 @@
                         </tbody>
                       </table>
                     </div>
-                    <form action="/invoice">
+                    <form action="/invoice" method="post">
                       <button type="submit" class="btn btn-primary btn-round pull-right">Process</button>
                     </form>
                   </div>
