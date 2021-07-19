@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 17, 2021 at 05:10 PM
+-- Generation Time: Jul 19, 2021 at 08:26 AM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.2
 
@@ -106,21 +106,34 @@ INSERT INTO `itemlogtable` (`itemlogid`, `employeeid`, `itemid`, `pulledstock`, 
 --
 
 CREATE TABLE `orderdetails` (
-  `detailid` int(11) NOT NULL,
   `orderid` int(11) NOT NULL,
   `productid` int(11) NOT NULL,
-  `orderquantity` int(11) NOT NULL,
-  `ordertotalprice` decimal(11,2) NOT NULL
+  `itemquantity` int(11) NOT NULL,
+  `itemtotalprice` decimal(11,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `orderdetails`
 --
 
-INSERT INTO `orderdetails` (`detailid`, `orderid`, `productid`, `orderquantity`, `ordertotalprice`) VALUES
-(1, 1, 1, 1, '30.00'),
-(2, 2, 2, 1, '30.00'),
-(3, 2, 5, 1, '10.00');
+INSERT INTO `orderdetails` (`orderid`, `productid`, `itemquantity`, `itemtotalprice`) VALUES
+(1, 1, 1, '30.00'),
+(2, 2, 1, '30.00'),
+(2, 5, 1, '10.00'),
+(3, 3, 1, '35.00'),
+(3, 5, 1, '10.00'),
+(4, 6, 1, '15.00'),
+(5, 6, 2, '30.00'),
+(5, 3, 1, '35.00'),
+(6, 1, 3, '90.00'),
+(7, 6, 1, '15.00'),
+(7, 2, 3, '90.00'),
+(8, 6, 2, '30.00'),
+(8, 1, 4, '120.00'),
+(9, 1, 2, '60.00'),
+(9, 6, 3, '45.00'),
+(10, 6, 4, '60.00'),
+(10, 3, 2, '70.00');
 
 -- --------------------------------------------------------
 
@@ -130,9 +143,8 @@ INSERT INTO `orderdetails` (`detailid`, `orderid`, `productid`, `orderquantity`,
 
 CREATE TABLE `ordertable` (
   `orderid` int(11) NOT NULL,
-  `current_date_order_id` int(11) NOT NULL,
-  `totalquantity` int(11) NOT NULL,
-  `totalrevenue` decimal(11,2) NOT NULL,
+  `ordertotalquantity` int(11) NOT NULL,
+  `ordertotalprice` decimal(11,2) NOT NULL,
   `logdate` timestamp NOT NULL DEFAULT current_timestamp(),
   `employeeid` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -141,9 +153,17 @@ CREATE TABLE `ordertable` (
 -- Dumping data for table `ordertable`
 --
 
-INSERT INTO `ordertable` (`orderid`, `current_date_order_id`, `totalquantity`, `totalrevenue`, `logdate`, `employeeid`) VALUES
-(1, 1, 1, '30.00', '2021-07-17 10:59:31', 1),
-(2, 2, 2, '40.00', '2021-07-17 10:59:52', 1);
+INSERT INTO `ordertable` (`orderid`, `ordertotalquantity`, `ordertotalprice`, `logdate`, `employeeid`) VALUES
+(1, 1, '30.00', '2021-07-17 10:59:31', 1),
+(2, 2, '40.00', '2021-07-17 10:59:52', 1),
+(3, 2, '45.00', '2021-07-18 04:56:51', 1),
+(4, 1, '15.00', '2021-07-18 04:57:49', 1),
+(5, 3, '65.00', '2021-07-18 05:18:26', 1),
+(6, 3, '90.00', '2021-07-18 05:30:33', 1),
+(7, 4, '105.00', '2021-07-18 05:51:10', 1),
+(8, 6, '150.00', '2021-07-18 06:37:44', 1),
+(9, 5, '105.00', '2021-07-19 01:49:38', 1),
+(10, 6, '130.00', '2021-07-19 02:15:34', 1);
 
 -- --------------------------------------------------------
 
@@ -278,7 +298,6 @@ ALTER TABLE `itemlogtable`
 -- Indexes for table `orderdetails`
 --
 ALTER TABLE `orderdetails`
-  ADD PRIMARY KEY (`detailid`),
   ADD KEY `details_fk1` (`orderid`),
   ADD KEY `details_fk2` (`productid`) USING BTREE;
 
@@ -340,18 +359,6 @@ ALTER TABLE `inventorytable`
 --
 ALTER TABLE `itemlogtable`
   MODIFY `itemlogid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- AUTO_INCREMENT for table `orderdetails`
---
-ALTER TABLE `orderdetails`
-  MODIFY `detailid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- AUTO_INCREMENT for table `ordertable`
---
-ALTER TABLE `ordertable`
-  MODIFY `orderid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `producttable`
