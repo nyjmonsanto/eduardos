@@ -22,6 +22,12 @@ connection.connect((err) => {
     }else{
         console.log("Connected To Database");
     }
+
+    connection.query("CREATE TEMPORARY TABLE carttable SELECT * FROM orderdetails LIMIT 0;", (err) => {
+        if(err) {
+            throw(err);
+        }
+    });
 });
 
 app.set("view engine", "ejs");
