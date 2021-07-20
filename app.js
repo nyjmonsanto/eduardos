@@ -7,6 +7,7 @@ const express = require("express"),
       methodOverride = require("method-override"),
       bcrypt = require("bcrypt-nodejs"),
       saltRounds = 10,
+      alert = require("alert"),
       app = express();
 
 const connection = mysql.createConnection({
@@ -704,31 +705,35 @@ app.post("/pull-item", urlencodedParser, (req, res) => {
             if(err){
                 throw(err);
             }else{
-                let sql1 = "INSERT INTO itemlogtable SET ?"
-                let post1 = {
-                    employeeid: req.session.employeeid,
-                    itemid: req.body.itemid,
-                    pulledstock: req.body.pulledstock
-                }
-                connection.query(sql1, post1, (err, res) => { 
-                    if(err){
-                        throw(err);
-                    }else{
-                        console.log("success");
-                        console.log(res);
-                    }
-                });
-                if(result[0].itemstock>=req.body.pulledstock){
+                if((req.body.pulledstock) <= (result[0].itemstock)){
                     let pullstock = (result[0].itemstock)-parseInt(req.body.pulledstock);
                     connection.query("UPDATE inventorytable SET itemstock = '"+pullstock+"' WHERE itemid = '"+req.body.itemid+"'", (err) => {
                         if(err){
                             throw(err);
+                        }else{
+                            let sql1 = "INSERT INTO itemlogtable SET ?"
+                            let post1 = {
+                                employeeid: req.session.employeeid,
+                                itemid: req.body.itemid,
+                                pulledstock: req.body.pulledstock
+                            }
+                            connection.query(sql1, post1, (err, response) => { 
+                                if(err){
+                                    throw(err);
+                                }else{
+                                    console.log("success");
+                                    console.log(response);
+                                }
+                            });
+                            res.redirect("/inventory");
                         }
                     });
+                }else{
+                    alert("Invalid input!");
+                    res.redirect("/pull-item");
                 }
             }
         });
-        res.redirect("/item-log");
     }
 });
 //VOID ITEM LOG
@@ -891,25 +896,31 @@ app.post("/transaction", urlencodedParser, (req, res) => {
     if(req.session.logged){
         let sql;
         let post = {};
-        connection.query("SELECT * FROM producttable WHERE productid = '"+req.body.prodid+"' AND productavailability = 'Available'", (err, response) => {
-            if(err){
-                throw(err);
-            }
-            sql = "INSERT INTO carttable SET ?";
-            post = {
-                orderid: req.session.orderid,
-                productid: req.body.prodid,
-                itemquantity: req.body.prodquant,
-                itemtotalprice: (response[0].productprice)*req.body.prodquant,
-            }
-            connection.query(sql, post, (err, res) => { 
-                if(err){
-                    throw(err);
+        connection.query("SELECT * FROM producttable WHERE productid = '"+req.body.prodid+"'", (err, response) => {
+            console.log(response.length);
+            if(response.length > 0 && response[0].productavailability=='Available'){
+                if(req.body.prodquant>0){
+                    sql = "INSERT INTO carttable SET ?";
+                    post = {
+                        orderid: req.session.orderid,
+                        productid: req.body.prodid,
+                        itemquantity: req.body.prodquant,
+                        itemtotalprice: (response[0].productprice)*req.body.prodquant,
+                    }
+                    connection.query(sql, post, (err, res) => { 
+                        if(err){
+                            throw(err);
+                        }else{
+                            console.log("success");         
+                            console.log(res);
+                        }
+                    });
                 }else{
-                    console.log("success");         
-                    console.log(res);
+                    alert("Invalid input!");
                 }
-            });
+            }else{
+                alert("Product unavailable!");
+            }
         });
         connection.query("SELECT * FROM producttable WHERE productavailability = 'Available'", (err, result) => {
             if(err){
