@@ -9,7 +9,8 @@ const express = require("express"),
       saltRounds = 10,
       alert = require("alert"),
       app = express();
-
+/*----------------------------------------------------------------------------------------------------*/
+//USER LOGIN
 const connection = mysql.createConnection({
     host: "localhost",
     user: "root",
