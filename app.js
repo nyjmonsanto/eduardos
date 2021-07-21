@@ -185,7 +185,7 @@ app.get("/employees", (req, res) => {
             if(err){
                 throw(err);
             }else{
-                object = {post: response, usertype: req.session.usertype};
+                object = {post: response, usertype: req.session.usertype, id: req.session.employeeid};
                 res.render("employees", object);
             }
         });
