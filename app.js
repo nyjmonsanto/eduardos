@@ -513,46 +513,56 @@ app.post("/add-supply", urlencodedParser, (req, res) => {
                     if(err){
                         throw(err);
                     }else{
-                        let sql1 = "INSERT INTO supplylogtable SET ?"
-                        let post1 = {
-                            employeeid: req.session.employeeid,
-                            supplierid: req.body.supplierid,
-                            itemid: req.body.itemid,
-                            itemname: req.body.itemname,
-                            stockadded: req.body.stockadded,
-                            itemunit: req.body.itemunit
-                        }
-                        connection.query(sql1, post1, (err, res) => { 
-                            if(err){
-                                throw(err);
-                            }else{
-                                connection.query("SET FOREIGN_KEY_CHECKS=1;", (err) => {
-                                    if(err){
-                                        throw(err);
-                                    }else{
-                                        console.log("success");
-                                        console.log(res);
+                        connection.query("SELECT * FROM inventorytable WHERE itemid='"+req.body.itemid+"'", (err, result) => {
+                            if(result.length == 0){
+                                if(req.body.stockadded > 0){
+                                    let sql1 = "INSERT INTO supplylogtable SET ?"
+                                    let post1 = {
+                                        employeeid: req.session.employeeid,
+                                        supplierid: req.body.supplierid,
+                                        itemid: req.body.itemid,
+                                        itemname: req.body.itemname,
+                                        stockadded: req.body.stockadded,
+                                        itemunit: req.body.itemunit
                                     }
-                                });
+                                    connection.query(sql1, post1, (err, res) => { 
+                                        if(err){
+                                            throw(err);
+                                        }else{
+                                            connection.query("SET FOREIGN_KEY_CHECKS=1;", (err) => {
+                                                if(err){
+                                                    throw(err);
+                                                }else{
+                                                    console.log("success");
+                                                    console.log(res);
+                                                }
+                                            });
+                                        }
+                                    });
+                                    let sql2 = "INSERT INTO inventorytable SET ?"
+                                    let post2 = {
+                                        itemid: req.body.itemid,
+                                        itemname: req.body.itemname,
+                                        itemstock: req.body.stockadded,
+                                        itemunit: req.body.itemunit
+                                    }
+                                    connection.query(sql2, post2, (err, res) => { 
+                                        if(err){
+                                            throw(err);
+                                        }else{
+                                            console.log("success");
+                                            console.log(res);
+                                        }
+                                    });
+                                }else{
+                                    alert("Invalid input!");
+                                }
+                            }else{
+                                alert("Invalid input!");
                             }
                         });
                     }
-                });
-                let sql2 = "INSERT INTO inventorytable SET ?"
-                let post2 = {
-                    itemid: req.body.itemid,
-                    itemname: req.body.itemname,
-                    itemstock: req.body.stockadded,
-                    itemunit: req.body.itemunit
-                }
-                connection.query(sql2, post2, (err, res) => { 
-                    if(err){
-                        throw(err);
-                    }else{
-                        console.log("success");
-                        console.log(res);
-                    }
-                });
+                }); 
             }
         });
         res.redirect("/supply-log");
@@ -592,44 +602,49 @@ app.post("/update-supply", urlencodedParser, (req, res) => {
                             if(err){
                                 throw(err);
                             }else{
-                                let sql1 = "INSERT INTO supplylogtable SET ?"
-                                let post1 = {
-                                    employeeid: req.session.employeeid,
-                                    supplierid: req.body.supplierid,
-                                    itemid: req.body.itemid,
-                                    itemname: result[0].itemname,
-                                    stockadded: req.body.stockadded,
-                                    itemunit: result[0].itemunit
-                                }
-                                connection.query(sql1, post1, (err, res) => { 
-                                    if(err){
-                                        throw(err);
-                                    }else{
-                                        connection.query("SET FOREIGN_KEY_CHECKS=1;", (err) => {
-                                            if(err){
-                                                throw(err);
-                                            }else{
-                                                console.log("success");
-                                                console.log(res);
-                                            }
-                                        });
+                                if(req.body.stockadded > 0){
+                                    let sql1 = "INSERT INTO supplylogtable SET ?"
+                                    let post1 = {
+                                        employeeid: req.session.employeeid,
+                                        supplierid: req.body.supplierid,
+                                        itemid: req.body.itemid,
+                                        itemname: result[0].itemname,
+                                        stockadded: req.body.stockadded,
+                                        itemunit: result[0].itemunit
                                     }
-                                });
-                            }
-                            let num1 = result[0].itemstock;
-                            let num2 = req.body.stockadded;
-                            let addstock = num1+(num2-0);
-                            connection.query("UPDATE inventorytable SET itemstock = '"+addstock+"' WHERE itemid = '"+req.body.itemid+"'", (err) => {
-                                if(err){
-                                    throw(err);
+                                    connection.query(sql1, post1, (err, res) => { 
+                                        if(err){
+                                            throw(err);
+                                        }else{
+                                            connection.query("SET FOREIGN_KEY_CHECKS=1;", (err) => {
+                                                if(err){
+                                                    throw(err);
+                                                }else{
+                                                    console.log("success");
+                                                    console.log(res);
+                                                }
+                                            });
+                                        }
+                                    });
+                                    let num1 = result[0].itemstock;
+                                    let num2 = req.body.stockadded;
+                                    let addstock = num1+(num2-0);
+                                    connection.query("UPDATE inventorytable SET itemstock = '"+addstock+"' WHERE itemid = '"+req.body.itemid+"'", (err) => {
+                                        if(err){
+                                            throw(err);
+                                        }
+                                    });
+                                    res.redirect("/supply-log");
+                                }else{
+                                    alert("Invalid input!");
+                                    res.redirect("/update-supply");
                                 }
-                            });
+                            }
                         });
                     }
                 });
             }
         });
-        res.redirect("/supply-log");
     }
 });
 //VOID SUPPLY LOG
@@ -705,7 +720,7 @@ app.post("/pull-item", urlencodedParser, (req, res) => {
             if(err){
                 throw(err);
             }else{
-                if((req.body.pulledstock) <= (result[0].itemstock)){
+                if(req.body.pulledstock <= result[0].itemstock && req.body.pulledstock > 0){
                     let pullstock = (result[0].itemstock)-parseInt(req.body.pulledstock);
                     connection.query("UPDATE inventorytable SET itemstock = '"+pullstock+"' WHERE itemid = '"+req.body.itemid+"'", (err) => {
                         if(err){
@@ -797,20 +812,25 @@ app.get("/add-product", (req, res) => {
 });
 app.post("/add-product", urlencodedParser, (req, res) => {
     if(req.session.logged){
-        let sql = "INSERT INTO producttable SET ?"
-        let post = {
-            employeeid: req.session.employeeid,
-            productname: req.body.productname,productprice: req.body.productprice,
-        }
-        connection.query(sql, post, (err, res) => { 
-            if(err){
-                throw(err);
-            }else{
-                console.log("success");
-                console.log(res);
+        if(req.body.productprice > 0){
+            let sql = "INSERT INTO producttable SET ?"
+            let post = {
+                employeeid: req.session.employeeid,
+                productname: req.body.productname,productprice: req.body.productprice,
             }
-        });
-        res.redirect("/products");
+            connection.query(sql, post, (err, res) => { 
+                if(err){
+                    throw(err);
+                }else{
+                    console.log("success");
+                    console.log(res);
+                }
+            });
+            res.redirect("/products");
+        }else{
+            alert("Invalid input!");
+            res.redirect("/add-product");
+        }
     }
 });
 //UPDATE PRODUCT
@@ -840,24 +860,30 @@ app.get("/products-unavailable/:productid/update-product-unavailable", (req, res
 });
 app.put("/products/:productid", urlencodedParser, (req, res) => {
     if(req.session.logged){
-        connection.query("UPDATE producttable SET productname = '"+req.body.productname+"', productprice = '"+req.body.productprice+"', productavailability = '"+req.body.productavailability+"' WHERE productid = ?", [req.params.productid], (err) => {
-            if(err){
-                throw(err);
-            }else{
-                res.redirect("/products");
-            }
-        });
+        if(req.body.productprice > 0){
+            connection.query("UPDATE producttable SET productname = '"+req.body.productname+"', productprice = '"+req.body.productprice+"', productavailability = '"+req.body.productavailability+"' WHERE productid = ?", [req.params.productid], (err) => {
+                if(err){
+                    throw(err);
+                }
+            });
+        }else{
+            alert("Invalid price!");
+        }
+        res.redirect("/products");
     }
 });
 app.put("/products-unavailable/:productid", urlencodedParser, (req, res) => {
     if(req.session.logged){
-        connection.query("UPDATE producttable SET productname = '"+req.body.productname+"', productprice = '"+req.body.productprice+"', productavailability = '"+req.body.productavailability+"' WHERE productid = ?", [req.params.productid], (err) => {
-            if(err){
-                throw(err);
-            }else{
-                res.redirect("/products-unavailable");
-            }
-        });
+        if(req.body.productprice > 0){
+            connection.query("UPDATE producttable SET productname = '"+req.body.productname+"', productprice = '"+req.body.productprice+"', productavailability = '"+req.body.productavailability+"' WHERE productid = ?", [req.params.productid], (err) => {
+                if(err){
+                    throw(err);
+                }
+            });
+        }else{
+            alert("Invalid price!");
+        }
+        res.redirect("/products-unavailable");
     }
 });
 /*----------------------------------------------------------------------------------------------------*/
