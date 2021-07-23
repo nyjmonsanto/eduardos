@@ -48,6 +48,10 @@
                 <div>
                     <a href="/transaction"><button type="submit" class="btn btn-danger btn-round"><i class="material-icons">keyboard_return</i>&nbspReturn</button></a>
                 </div>
+                <div>&nbsp &nbsp</div>
+                <div>
+                  <a href="/saleslog-monthlysales"><button type="submit" class="btn btn-info btn-round pull-right"><i class="material-icons">receipt</i>&nbspMONTHLY TOTAL SALES</button></a>
+                </div>
             </div>
             <div class="collapse navbar-collapse justify-content-end">
               <ul class="navbar-nav">
@@ -63,9 +67,8 @@
               <div class="col-md-12">
                 <div class="card card-plain">
                   <div class="card-header card-header-primary">
-                    <h4 class="card-title mt-0">Sales Log Section</h4>
+                    <h4 class="card-title mt-0">Daily Total Sales Section</h4>
                     <p class="card-category">Manage Daily Sales</p>
-                    <div><a href="/saleslog"><button type="submit" class="btn btn-info btn-round pull-right"><i class="material-icons">receipt</i>&nbspSALES LOG</button></a></div>
                   </div>
                   <div class="card-body">
                     <div class="table-responsive">
@@ -73,12 +76,25 @@
                         <thead class="text-primary">
                           <th>Date</th>
                           <th>Total Sales</th>
+                          <th>Total Revenue</th>
+                          <th colspan="2">Actions</th>
                         </thead>
                         <tbody>
                           <% post.forEach((dailysales) => { %>
                             <tr>
-                                <td><%= dailysales.date %></td>
+                                <td><%= dailysales.month %> <%= dailysales.day %>, <%= dailysales.year %> - <%= dailysales.dayname %></td>
                                 <td><%= dailysales.totalsales %></td>
+                                <th class="text-danger">₱ <%= dailysales.totalrevenue %></th>
+                                <td>
+                                  <form action="/saleslog-dailysales/<%= dailysales.year %>/<%= dailysales.month %>/<%= dailysales.day %>/saleslog-daily-details">
+                                    <button type="submit" class="btn btn-warning btn-round">Check Details</button>
+                                  </form>
+                                </td>
+                                <td>
+                                  <form action="/saleslog-dailysales/<%= dailysales.year %>/<%= dailysales.month %>/<%= dailysales.day %>/saleslog-daily-log">
+                                    <button type="submit" class="btn btn-warning btn-round">Check Orders</button>
+                                  </form>
+                                </td>
                             </tr>
                           <% }); %>
                         </tbody>

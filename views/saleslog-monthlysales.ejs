@@ -18,7 +18,7 @@
   <head>
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
-    <link href="/css/material-dashboard.css?v=2.1.0" rel="stylesheet" />
+    <link href="css/material-dashboard.css?v=2.1.0" rel="stylesheet" />
   </head>
   
   <body class="dark-edition">
@@ -46,8 +46,13 @@
           <div class="container-fluid">
             <div class="navbar-wrapper">
                 <div>
-                    <a href="/saleslog"><button type="submit" class="btn btn-danger btn-round"><i class="material-icons">keyboard_return</i>&nbspReturn</button></a>
+                    <a href="/transaction"><button type="submit" class="btn btn-danger btn-round"><i class="material-icons">keyboard_return</i>&nbspReturn</button></a>
                 </div>
+                <div>&nbsp &nbsp</div>
+                <div>
+                  <a href="/saleslog-dailysales"><button type="submit" class="btn btn-info btn-round pull-right"><i class="material-icons">receipt</i>&nbspDAILY TOTAL SALES</button></a>
+                </div>
+                <div>&nbsp &nbsp</div>
             </div>
             <div class="collapse navbar-collapse justify-content-end">
               <ul class="navbar-nav">
@@ -63,33 +68,36 @@
               <div class="col-md-12">
                 <div class="card card-plain">
                   <div class="card-header card-header-primary">
-                    <h4 class="card-title mt-0">Products Placed Section</h4>
-                    <p class="card-category">Manage Sales</p>
+                    <h4 class="card-title mt-0">Monthly Total Sales Section</h4>
+                    <p class="card-category">Manage Monthly Sales</p>
                   </div>
                   <div class="card-body">
                     <div class="table-responsive">
                       <table class="table table-hover">
                         <thead class="text-primary">
-                          <th>Product ID</th>
-                          <th>Quantity</th>
-                          <th>Subtotal</th>
+                          <th>Date</th>
+                          <th>Total Sales</th>
+                          <th>Total Revenue</th>
+                          <th colspan="2">Actions</th>
                         </thead>
                         <tbody>
-                          <% post.forEach((sale) => { %>
+                          <% post.forEach((monthlysales) => { %>
                             <tr>
-                                <td><%= sale.productid %></td>
-                                <td><%= sale.orderquantity %></td>
-                                <td class="text-danger">₱ <%= sale.ordertotalprice %></td>
+                                <td><%= monthlysales.month %> <%= monthlysales.year %></td>
+                                <td><%= monthlysales.totalsales %></td>
+                                <th class="text-danger">₱ <%= monthlysales.totalrevenue %></th>
+                                <td>
+                                  <form action="/saleslog-monthlysales/<%= monthlysales.year %>/<%= monthlysales.month %>/saleslog-monthly-details">
+                                    <button type="submit" class="btn btn-warning btn-round">Check Details</button>
+                                  </form>
+                                </td>
+                                <td>
+                                  <form action="/saleslog-monthlysales/<%= monthlysales.year %>/<%= monthlysales.month %>/saleslog-monthly-daily-log">
+                                    <button type="submit" class="btn btn-warning btn-round">Check Log</button>
+                                  </form>
+                                </td>
                             </tr>
                           <% }); %>
-                          
-                        </tbody>
-                        <tbody>
-                            <tr>
-                                <td></td>
-                                <th>Total Price</th>
-                                <th class="text-danger">₱ <%= data[0].total %></th>
-                            </tr>
                         </tbody>
                       </table>
                     </div>

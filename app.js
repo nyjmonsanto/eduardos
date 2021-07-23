@@ -7,6 +7,7 @@ const express = require("express"),
       methodOverride = require("method-override"),
       bcrypt = require("bcrypt-nodejs"),
       saltRounds = 10,
+      alert = require("alert"),
       app = express();
 
 const connection = mysql.createConnection({
@@ -22,6 +23,12 @@ connection.connect((err) => {
     }else{
         console.log("Connected To Database");
     }
+
+    connection.query("CREATE TEMPORARY TABLE carttable SELECT * FROM orderdetails LIMIT 0;", (err) => {
+        if(err) {
+            throw(err);
+        }
+    });
 });
 
 app.set("view engine", "ejs");
@@ -42,6 +49,17 @@ app.post("/", urlencodedParser, (req, res) => {
         if(err){
             throw(err);
         }else{
+            connection.query("SELECT * FROM ordertable ORDER BY orderid DESC LIMIT 1", (err, post) => {
+                if(err){
+                    throw(err);
+                }
+
+                if(post.length > 0){
+                    req.session.orderid = post[0].orderid + 1;
+                } else {
+                    req.session.orderid = 1;
+                }
+            })
             connection.query("SELECT * FROM usertable WHERE employeeid = '"+req.body.employeeid+"'", (err, response) => {
                 if(err){
                     throw(err);
@@ -52,8 +70,6 @@ app.post("/", urlencodedParser, (req, res) => {
                             req.session.logged = true;
                             req.session.employeeid = response[0].employeeid;
                             req.session.usertype = response[0].usertype;
-                            req.session.customerid = 1;
-                            req.session.orderid = 1;
                             if(req.session.usertype == "Admin"){
                                 console.log("success");
                                 res.redirect("/employees");
@@ -81,6 +97,17 @@ app.post("/admin-login", urlencodedParser, (req, res) => {
         if(err){
             throw(err);
         }else{
+            connection.query("SELECT * FROM ordertable ORDER BY orderid DESC LIMIT 1", (err, post) => {
+                if(err){
+                    throw(err);
+                }
+
+                if(post.length > 0){
+                    req.session.orderid = post[0].orderid + 1;
+                } else {
+                    req.session.orderid = 1;
+                }
+            })
             connection.query("SELECT * FROM usertable WHERE employeeid = '"+req.body.employeeid+"'", (err, response) => {
                 if(err){
                     throw(err);
@@ -91,7 +118,6 @@ app.post("/admin-login", urlencodedParser, (req, res) => {
                             req.session.logged = true;
                             req.session.employeeid = response[0].employeeid;
                             req.session.usertype = response[0].usertype;
-                            req.session.customerid = 1;
                             if(req.session.usertype == "Admin"){
                                 console.log("success");
                                 res.redirect("/employees");
@@ -159,7 +185,7 @@ app.get("/employees", (req, res) => {
             if(err){
                 throw(err);
             }else{
-                object = {post: response, usertype: req.session.usertype};
+                object = {post: response, usertype: req.session.usertype, id: req.session.employeeid};
                 res.render("employees", object);
             }
         });
@@ -487,46 +513,56 @@ app.post("/add-supply", urlencodedParser, (req, res) => {
                     if(err){
                         throw(err);
                     }else{
-                        let sql1 = "INSERT INTO supplylogtable SET ?"
-                        let post1 = {
-                            employeeid: req.session.employeeid,
-                            supplierid: req.body.supplierid,
-                            itemid: req.body.itemid,
-                            itemname: req.body.itemname,
-                            stockadded: req.body.stockadded,
-                            itemunit: req.body.itemunit
-                        }
-                        connection.query(sql1, post1, (err, res) => { 
-                            if(err){
-                                throw(err);
-                            }else{
-                                connection.query("SET FOREIGN_KEY_CHECKS=1;", (err) => {
-                                    if(err){
-                                        throw(err);
-                                    }else{
-                                        console.log("success");
-                                        console.log(res);
+                        connection.query("SELECT * FROM inventorytable WHERE itemid='"+req.body.itemid+"'", (err, result) => {
+                            if(result.length == 0){
+                                if(req.body.stockadded > 0){
+                                    let sql1 = "INSERT INTO supplylogtable SET ?"
+                                    let post1 = {
+                                        employeeid: req.session.employeeid,
+                                        supplierid: req.body.supplierid,
+                                        itemid: req.body.itemid,
+                                        itemname: req.body.itemname,
+                                        stockadded: req.body.stockadded,
+                                        itemunit: req.body.itemunit
                                     }
-                                });
+                                    connection.query(sql1, post1, (err, res) => { 
+                                        if(err){
+                                            throw(err);
+                                        }else{
+                                            connection.query("SET FOREIGN_KEY_CHECKS=1;", (err) => {
+                                                if(err){
+                                                    throw(err);
+                                                }else{
+                                                    console.log("success");
+                                                    console.log(res);
+                                                }
+                                            });
+                                        }
+                                    });
+                                    let sql2 = "INSERT INTO inventorytable SET ?"
+                                    let post2 = {
+                                        itemid: req.body.itemid,
+                                        itemname: req.body.itemname,
+                                        itemstock: req.body.stockadded,
+                                        itemunit: req.body.itemunit
+                                    }
+                                    connection.query(sql2, post2, (err, res) => { 
+                                        if(err){
+                                            throw(err);
+                                        }else{
+                                            console.log("success");
+                                            console.log(res);
+                                        }
+                                    });
+                                }else{
+                                    alert("Invalid input!");
+                                }
+                            }else{
+                                alert("Invalid input!");
                             }
                         });
                     }
-                });
-                let sql2 = "INSERT INTO inventorytable SET ?"
-                let post2 = {
-                    itemid: req.body.itemid,
-                    itemname: req.body.itemname,
-                    itemstock: req.body.stockadded,
-                    itemunit: req.body.itemunit
-                }
-                connection.query(sql2, post2, (err, res) => { 
-                    if(err){
-                        throw(err);
-                    }else{
-                        console.log("success");
-                        console.log(res);
-                    }
-                });
+                }); 
             }
         });
         res.redirect("/supply-log");
@@ -566,44 +602,49 @@ app.post("/update-supply", urlencodedParser, (req, res) => {
                             if(err){
                                 throw(err);
                             }else{
-                                let sql1 = "INSERT INTO supplylogtable SET ?"
-                                let post1 = {
-                                    employeeid: req.session.employeeid,
-                                    supplierid: req.body.supplierid,
-                                    itemid: req.body.itemid,
-                                    itemname: result[0].itemname,
-                                    stockadded: req.body.stockadded,
-                                    itemunit: result[0].itemunit
-                                }
-                                connection.query(sql1, post1, (err, res) => { 
-                                    if(err){
-                                        throw(err);
-                                    }else{
-                                        connection.query("SET FOREIGN_KEY_CHECKS=1;", (err) => {
-                                            if(err){
-                                                throw(err);
-                                            }else{
-                                                console.log("success");
-                                                console.log(res);
-                                            }
-                                        });
+                                if(req.body.stockadded > 0){
+                                    let sql1 = "INSERT INTO supplylogtable SET ?"
+                                    let post1 = {
+                                        employeeid: req.session.employeeid,
+                                        supplierid: req.body.supplierid,
+                                        itemid: req.body.itemid,
+                                        itemname: result[0].itemname,
+                                        stockadded: req.body.stockadded,
+                                        itemunit: result[0].itemunit
                                     }
-                                });
-                            }
-                            let num1 = result[0].itemstock;
-                            let num2 = req.body.stockadded;
-                            let addstock = num1+(num2-0);
-                            connection.query("UPDATE inventorytable SET itemstock = '"+addstock+"' WHERE itemid = '"+req.body.itemid+"'", (err) => {
-                                if(err){
-                                    throw(err);
+                                    connection.query(sql1, post1, (err, res) => { 
+                                        if(err){
+                                            throw(err);
+                                        }else{
+                                            connection.query("SET FOREIGN_KEY_CHECKS=1;", (err) => {
+                                                if(err){
+                                                    throw(err);
+                                                }else{
+                                                    console.log("success");
+                                                    console.log(res);
+                                                }
+                                            });
+                                        }
+                                    });
+                                    let num1 = result[0].itemstock;
+                                    let num2 = req.body.stockadded;
+                                    let addstock = num1+(num2-0);
+                                    connection.query("UPDATE inventorytable SET itemstock = '"+addstock+"' WHERE itemid = '"+req.body.itemid+"'", (err) => {
+                                        if(err){
+                                            throw(err);
+                                        }
+                                    });
+                                    res.redirect("/supply-log");
+                                }else{
+                                    alert("Invalid input!");
+                                    res.redirect("/update-supply");
                                 }
-                            });
+                            }
                         });
                     }
                 });
             }
         });
-        res.redirect("/supply-log");
     }
 });
 //VOID SUPPLY LOG
@@ -679,31 +720,35 @@ app.post("/pull-item", urlencodedParser, (req, res) => {
             if(err){
                 throw(err);
             }else{
-                let sql1 = "INSERT INTO itemlogtable SET ?"
-                let post1 = {
-                    employeeid: req.session.employeeid,
-                    itemid: req.body.itemid,
-                    pulledstock: req.body.pulledstock
-                }
-                connection.query(sql1, post1, (err, res) => { 
-                    if(err){
-                        throw(err);
-                    }else{
-                        console.log("success");
-                        console.log(res);
-                    }
-                });
-                if(result[0].itemstock>=req.body.pulledstock){
+                if(req.body.pulledstock <= result[0].itemstock && req.body.pulledstock > 0){
                     let pullstock = (result[0].itemstock)-parseInt(req.body.pulledstock);
                     connection.query("UPDATE inventorytable SET itemstock = '"+pullstock+"' WHERE itemid = '"+req.body.itemid+"'", (err) => {
                         if(err){
                             throw(err);
+                        }else{
+                            let sql1 = "INSERT INTO itemlogtable SET ?"
+                            let post1 = {
+                                employeeid: req.session.employeeid,
+                                itemid: req.body.itemid,
+                                pulledstock: req.body.pulledstock
+                            }
+                            connection.query(sql1, post1, (err, response) => { 
+                                if(err){
+                                    throw(err);
+                                }else{
+                                    console.log("success");
+                                    console.log(response);
+                                }
+                            });
+                            res.redirect("/inventory");
                         }
                     });
+                }else{
+                    alert("Invalid input!");
+                    res.redirect("/pull-item");
                 }
             }
         });
-        res.redirect("/item-log");
     }
 });
 //VOID ITEM LOG
@@ -767,20 +812,25 @@ app.get("/add-product", (req, res) => {
 });
 app.post("/add-product", urlencodedParser, (req, res) => {
     if(req.session.logged){
-        let sql = "INSERT INTO producttable SET ?"
-        let post = {
-            employeeid: req.session.employeeid,
-            productname: req.body.productname,productprice: req.body.productprice,
-        }
-        connection.query(sql, post, (err, res) => { 
-            if(err){
-                throw(err);
-            }else{
-                console.log("success");
-                console.log(res);
+        if(req.body.productprice > 0){
+            let sql = "INSERT INTO producttable SET ?"
+            let post = {
+                employeeid: req.session.employeeid,
+                productname: req.body.productname,productprice: req.body.productprice,
             }
-        });
-        res.redirect("/products");
+            connection.query(sql, post, (err, res) => { 
+                if(err){
+                    throw(err);
+                }else{
+                    console.log("success");
+                    console.log(res);
+                }
+            });
+            res.redirect("/products");
+        }else{
+            alert("Invalid input!");
+            res.redirect("/add-product");
+        }
     }
 });
 //UPDATE PRODUCT
@@ -810,41 +860,59 @@ app.get("/products-unavailable/:productid/update-product-unavailable", (req, res
 });
 app.put("/products/:productid", urlencodedParser, (req, res) => {
     if(req.session.logged){
-        connection.query("UPDATE producttable SET productname = '"+req.body.productname+"', productprice = '"+req.body.productprice+"', productavailability = '"+req.body.productavailability+"' WHERE productid = ?", [req.params.productid], (err) => {
-            if(err){
-                throw(err);
-            }else{
-                res.redirect("/products");
-            }
-        });
+        if(req.body.productprice > 0){
+            connection.query("UPDATE producttable SET productname = '"+req.body.productname+"', productprice = '"+req.body.productprice+"', productavailability = '"+req.body.productavailability+"' WHERE productid = ?", [req.params.productid], (err) => {
+                if(err){
+                    throw(err);
+                }
+            });
+        }else{
+            alert("Invalid price!");
+        }
+        res.redirect("/products");
     }
 });
 app.put("/products-unavailable/:productid", urlencodedParser, (req, res) => {
     if(req.session.logged){
-        connection.query("UPDATE producttable SET productname = '"+req.body.productname+"', productprice = '"+req.body.productprice+"', productavailability = '"+req.body.productavailability+"' WHERE productid = ?", [req.params.productid], (err) => {
-            if(err){
-                throw(err);
-            }else{
-                res.redirect("/products-unavailable");
-            }
-        });
+        if(req.body.productprice > 0){
+            connection.query("UPDATE producttable SET productname = '"+req.body.productname+"', productprice = '"+req.body.productprice+"', productavailability = '"+req.body.productavailability+"' WHERE productid = ?", [req.params.productid], (err) => {
+                if(err){
+                    throw(err);
+                }
+            });
+        }else{
+            alert("Invalid price!");
+        }
+        res.redirect("/products-unavailable");
     }
 });
 /*----------------------------------------------------------------------------------------------------*/
 //TRANSACTIONS SECTION
 app.get("/transaction", (req, res) => {
     if(req.session.logged){
-        connection.query("SELECT * FROM producttable", (err, response) => {
+        connection.query("SELECT * FROM producttable WHERE productavailability = 'Available'", (err, result) => {
             if(err){
                 throw(err);
-            }else{
-                connection.query("SELECT SUM(ordertotalprice) AS total FROM ordertable WHERE customerid = '"+req.session.customerid+"'", (err, data) => {
+            }else{         
+                connection.query("SELECT * FROM carttable WHERE orderid = '"+req.session.orderid+"'", (err, response) => {
                     if(err){
-                        throw err;
-                    }else{
-                        // console.log(data[0].total);
-                        res.render("transaction", {data: data[0].total, prodid: 0, customerid: req.session.customerid, prodquant: 0, product: response, values: 0, usertype: req.session.usertype, employeeid: req.session.employeeid, customerid: req.session.customerid});
+                        throw(err);
                     }
+                    connection.query("SELECT SUM(itemtotalprice) AS ordertotalprice FROM carttable WHERE orderid = '"+req.session.orderid+"'", (err, data) => {
+                        if(err){
+                            throw(err);
+                        }
+                        // console.log(data[0].total);
+                        res.render("transaction", {
+                            data: data[0].ordertotalprice, 
+                            prodid: 0, 
+                            prodquant: 0, 
+                            product: result, 
+                            values: response, 
+                            usertype: req.session.usertype, 
+                            employeeid: req.session.employeeid, 
+                            orderid: req.session.orderid});
+                    });
                 });
             }
         });
@@ -852,67 +920,63 @@ app.get("/transaction", (req, res) => {
 });
 app.post("/transaction", urlencodedParser, (req, res) => {
     if(req.session.logged){
-        connection.query("SELECT * FROM producttable WHERE productid = '"+req.body.prodid+"'", (err, response) => {
-            if(err){
-                throw(err);
-            }
-            connection.query("SELECT SUM(ordertotalprice) AS total FROM ordertable WHERE customerid = '"+req.session.customerid+"'", (err, data) => {
-                if(err){
-                    throw(err);
-                }
-                // console.log(data[0].total);
-                res.render("transaction", {data: data[0].total, prodid: req.body.prodid, customerid: req.session.customerid, prodquant: 0, product: response, values: 0, usertype: req.session.usertype, employeeid: req.session.employeeid, customerid: req.session.customerid});
-            });
-        });
-    }
-});
-app.post("/transaction/:prodid", urlencodedParser, (req, res) => {
-    if(req.session.logged){
         let sql;
         let post = {};
-        connection.query("SELECT * FROM producttable WHERE productid = '"+req.params.prodid+"'", (err, response) => {
-            if(err){
-                throw(err);
-            }
-            sql = "INSERT INTO ordertable SET ?";
-            post = {
-                employeeid: req.session.employeeid,
-                orderid: req.session.orderid,
-                customerid: req.session.customerid,
-                productid: req.params.prodid,
-                orderquantity: req.body.prodquant,
-                ordertotalprice: (response[0].productprice)*req.body.prodquant,
-            }
-            connection.query(sql, post, (err, res) => { 
-                if(err){
-                    throw(err);
+        connection.query("SELECT * FROM producttable WHERE productid = '"+req.body.prodid+"'", (err, response) => {
+            console.log(response.length);
+            if(response.length > 0 && response[0].productavailability=='Available'){
+                if(req.body.prodquant>0){
+                    sql = "INSERT INTO carttable SET ?";
+                    post = {
+                        orderid: req.session.orderid,
+                        productid: req.body.prodid,
+                        itemquantity: req.body.prodquant,
+                        itemtotalprice: (response[0].productprice)*req.body.prodquant,
+                    }
+                    connection.query(sql, post, (err, res) => { 
+                        if(err){
+                            throw(err);
+                        }else{
+                            console.log("success");         
+                            console.log(res);
+                        }
+                    });
                 }else{
-                    console.log("success");         
-                    console.log(res);
+                    alert("Invalid input!");
                 }
-            });
+            }else{
+                alert("Product unavailable!");
+            }
         });
-        connection.query("SELECT * FROM producttable", (err, result) => {
+        connection.query("SELECT * FROM producttable WHERE productavailability = 'Available'", (err, result) => {
             if(err){
                 throw(err);
             }
-            connection.query("SELECT * FROM ordertable WHERE customerid = '"+req.session.customerid+"'", (err, response) => {
+            connection.query("SELECT * FROM carttable WHERE orderid = '"+req.session.orderid+"'", (err, response) => {
                 if(err){
                     throw(err);
                 }
-                connection.query("SELECT SUM(ordertotalprice) AS total FROM ordertable WHERE customerid = '"+req.session.customerid+"'", (err, data) => {
+                connection.query("SELECT SUM(itemtotalprice) AS ordertotalprice FROM carttable WHERE orderid = '"+req.session.orderid+"'", (err, data) => {
                     if(err){
                         throw(err);
                     }
                     // console.log(data[0].total);
-                    res.render("transaction", {data: data[0].total, prodid: 0, customerid: req.session.customerid, prodquant: 0, product: result, values: response, usertype: req.session.usertype, employeeid: req.session.employeeid, customerid: req.session.customerid});
+                    res.render("transaction", {
+                        data: data[0].ordertotalprice, 
+                        prodid: 0, 
+                        prodquant: 0, 
+                        product: result, 
+                        values: response, 
+                        usertype: req.session.usertype, 
+                        employeeid: req.session.employeeid, 
+                        orderid: req.session.orderid});
                 });
             });
         });
     }
 });
 app.delete("/transaction/:productid", (req, res) => {
-    connection.query("DELETE FROM ordertable WHERE productid = '"+req.params.productid+"'", (err) => {
+    connection.query("DELETE FROM carttable WHERE productid = '"+req.params.productid+"'", (err) => {
         if(err){
             throw(err);
         }else{
@@ -922,55 +986,211 @@ app.delete("/transaction/:productid", (req, res) => {
 });
 //THANK YOU
 app.get("/invoice", (req, res) => {
+    res.render("invoice");
+});
+app.post("/invoice", (req, res) => {
     if(req.session.logged){
-        req.session.customerid = req.session.customerid + 1;
-        req.session.orderid = req.session.orderid + 1;
-        res.render("invoice");
+        connection.query("SELECT SUM(itemtotalprice) AS ordertotalprice, SUM(itemquantity) AS ordertotalquantity FROM carttable WHERE orderid = '"+req.session.orderid+"'", (err, data) => {
+            if(err){
+                throw(err);
+            }else{
+                let sql;
+                let post = {};
+                sql = "INSERT INTO ordertable SET ?";
+                post = {  
+                    orderid: req.session.orderid,
+                    ordertotalquantity: data[0].ordertotalquantity,
+                    ordertotalprice: data[0].ordertotalprice,
+                    employeeid: req.session.employeeid,
+                }
+                connection.query(sql, post, (err) => { 
+                    if(err){
+                        throw(err);
+                    }else{
+                        connection.query("INSERT INTO orderdetails SELECT * FROM carttable", (err, result) => {
+                            if(err){
+                                throw(err);
+                            }else{
+                                connection.query("DELETE FROM carttable", (err) => {
+                                    if(err){
+                                        throw(err);
+                                    }else{
+                                        req.session.orderid = req.session.orderid + 1;
+                                        res.render("invoice");
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });  
     }
 });
+
+/*----------------------------------------------------------------------------------------------------*/
 //SALES LOG
-app.get("/saleslog", (req, res) => {
+
+//DAILY SALES LOG
+app.get("/saleslog-dailysales", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT * FROM ordertable GROUP BY orderid", (err, response) => {
+        connection.query("SELECT DAYNAME(logdate) as dayname, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year, DATE(logdate) as date, SUM(ordertotalquantity) as totalsales, SUM(ordertotalprice) as totalrevenue FROM ordertable GROUP BY date ORDER BY date DESC", (err, response) => {
             if(err){
                 throw(err);
             }else{
                 object = {post: response, usertype: req.session.usertype};
-                res.render("saleslog", object);
+                res.render("saleslog-dailysales", object);
             }
         });
     }
 });
-app.get("/saleslog/:orderid/saleslog-products", (req, res) => {
+app.get("/saleslog-dailysales/:objyear/:objmonth/:objday/saleslog-daily-details", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT * FROM ordertable WHERE orderid = '"+req.params.orderid+"'", (err, response) => {
+        connection.query("SELECT CONCAT(orderdetails.productid, ' - ', producttable.productname) as product, SUM(itemtotalprice) AS subtotalprice, SUM(itemquantity) AS totalquantity FROM orderdetails INNER JOIN producttable ON orderdetails.productid=producttable.productid INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE YEAR(ordertable.logdate) = '"+req.params.objyear+"' AND MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' AND DAY(ordertable.logdate) = '"+req.params.objday+"' GROUP BY orderdetails.productid", (err, response) => {
             if(err){
                 throw(err);
             }else{
-                connection.query("SELECT SUM(ordertotalprice) AS total FROM ordertable WHERE orderid = '"+req.params.orderid+"'", (err, data) => {
+                connection.query("SELECT SUM(ordertotalprice) AS totalrevenue, DATE_FORMAT(logdate, '%M %d, %Y - %W') as date FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"'", (err, data) => {
                     if(err){
                         throw(err);
                     }else{
                     object = {post: response, usertype: req.session.usertype, data: data};
-                    res.render("saleslog-products", object);
+                    res.render("saleslog-daily-details", object);
                     }
                 });
             }
         });
     }
 });
-//DAILY SALES LOG
-app.get("/saleslog-daily", (req, res) => {
+app.get("/saleslog-dailysales/:objyear/:objmonth/:objday/saleslog-daily-log", (req, res) => {
+    if(req.session.logged){
+        connection.query("SELECT *, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"'", (err, response) => {
+            if(err){
+                throw(err);
+            }else{
+                connection.query("SELECT SUM(ordertotalquantity) as sumquantity, SUM(ordertotalprice) AS sumrevenue FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"'", (err, data) => {
+                    if(err){
+                        throw(err);
+                    }else{
+                    object = {post: response, usertype: req.session.usertype, data: data};
+                    res.render("saleslog-daily-log", object);
+                    }
+                });
+            }
+        });
+    }
+});
+app.get("/saleslog-dailysales/:objyear/:objmonth/:objday/:orderid/saleslog-daily-order-details", (req, res) => {
     if(req.session.logged){
         let object = {};
-        connection.query("SELECT DATE(logdate) AS date, SUM(orderquantity) AS totalsales FROM ordertable GROUP BY date", (err, response) => {
+        connection.query("SELECT orderdetails.orderid, CONCAT(orderdetails.productid, ' - ', producttable.productname) as product, SUM(itemtotalprice) AS subtotalprice, SUM(itemquantity) AS totalquantity FROM orderdetails INNER JOIN producttable ON orderdetails.productid=producttable.productid INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE YEAR(ordertable.logdate)  = '"+req.params.objyear+"' AND MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' AND DAY(ordertable.logdate) = '"+req.params.objday+"' AND orderdetails.orderid = '"+req.params.orderid+"' GROUP BY orderdetails.productid", (err, response) => {
+            if(err){
+                throw(err);
+            }else{
+                connection.query("SELECT ordertotalprice, DAY(logdate) as day, MONTHNAME(logdate) as month, YEAR(logdate) as year FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND DAY(logdate) = '"+req.params.objday+"' AND orderid = '"+req.params.orderid+"'", (err, data) => {
+                    if(err){
+                        throw(err);
+                    }else{
+                    object = {post: response, usertype: req.session.usertype, data: data};
+                    res.render("saleslog-daily-order-details", object);
+                    }
+                });
+            }
+        });
+    }
+});
+
+//MONTHLY SALES LOG
+app.get("/saleslog-monthlysales", (req, res) => {
+    if(req.session.logged){
+        let object = {};
+        connection.query("SELECT MONTHNAME(logdate) as month, YEAR(logdate) as year, SUM(ordertotalquantity) as totalsales, SUM(ordertotalprice) as totalrevenue FROM ordertable GROUP BY month, year ORDER BY month ASC, year DESC", (err, response) => {
             if(err){
                 throw(err);
             }else{
                 object = {post: response, usertype: req.session.usertype};
-                res.render("saleslog-daily", object);
+                res.render("saleslog-monthlysales", object);
+            }
+        });
+    }
+});
+app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-details", (req, res) => {
+    if(req.session.logged){
+        let object = {};
+        connection.query("SELECT CONCAT(orderdetails.productid, ' - ', producttable.productname) as product, SUM(itemtotalprice) as subtotalprice, SUM(itemquantity) as totalquantity FROM orderdetails INNER JOIN producttable ON orderdetails.productid=producttable.productid INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE YEAR(ordertable.logdate)  = '"+req.params.objyear+"' AND MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' GROUP BY orderdetails.productid", (err, response) => {
+            if(err){
+                throw(err);
+            }else{
+                connection.query("SELECT SUM(ordertotalprice) AS totalrevenue, DATE_FORMAT(logdate, '%M %Y') as date FROM ordertable WHERE YEAR(logdate)  = '"+req.params.objyear+"' AND MONTHNAME(logdate) = '"+req.params.objmonth+"'", (err, data) => {
+                    if(err){
+                        throw(err);
+                    }else{
+                    object = {post: response, usertype: req.session.usertype, data: data};
+                    res.render("saleslog-monthly-details", object);
+                    }
+                });
+            }
+        });
+    }
+});
+app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-daily-log", (req, res) => {
+    if(req.session.logged){
+        let object = {};
+        connection.query("SELECT DAYNAME(ordertable.logdate) as dayname, DAY(ordertable.logdate) as day, MONTHNAME(ordertable.logdate) as month, YEAR(ordertable.logdate) as year, DATE(ordertable.logdate) as date, SUM(itemquantity) as totalsales, SUM(itemtotalprice) as totalrevenue FROM orderdetails INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' AND YEAR(ordertable.logdate) = '"+req.params.objyear+"' GROUP BY date ORDER BY date DESC", (err, response) => {
+            if(err){
+                throw(err);
+            }else{
+                object = {post: response, usertype: req.session.usertype};
+                res.render("saleslog-monthly-daily-log", object);
+            }
+        });
+    }
+});
+
+//WEEKLY SALES LOG
+app.get("/saleslog-monthlysales/:objyear/:objmonth/saleslog-monthly-weekly-log", (req, res) => {
+    if(req.session.logged){
+        let object = {};
+        connection.query("SELECT SUM(itemquantity) as totalsales, SUM(itemtotalprice) as totalrevenue, MONTHNAME(ordertable.logdate) as month, YEAR(ordertable.logdate) as year, DATE_FORMAT(DATE_ADD(ordertable.logdate, INTERVAL (-WEEKDAY(ordertable.logdate)) DAY), '%M %d, %Y') as WeekStart, DATE_FORMAT(DATE_ADD(ordertable.logdate, INTERVAL (6-WEEKDAY(ordertable.logdate)) DAY), '%M %d, %Y') as WeekEnd FROM orderdetails INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' AND YEAR(ordertable.logdate) = '"+req.params.objyear+"' GROUP BY WeekStart ORDER BY WEEK(ordertable.logdate) DESC", (err, response) => {
+            if(err){
+                throw(err);
+            }else{
+                object = {post: response, usertype: req.session.usertype};
+                res.render("saleslog-monthly-weekly-log", object);
+            }
+        });
+    }
+});
+app.get("/saleslog-monthlysales/:objyear/:objmonth/:objstart-:objend/saleslog-weekly-details", (req, res) => {
+    if(req.session.logged){
+        let object = {};
+        connection.query("SELECT CONCAT(orderdetails.productid, ' - ', producttable.productname) as product, SUM(itemtotalprice) as subtotalprice, SUM(itemquantity) as totalquantity, MONTHNAME(ordertable.logdate) as month, YEAR(ordertable.logdate) as year FROM orderdetails INNER JOIN producttable ON orderdetails.productid=producttable.productid INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE DATE(ordertable.logdate) BETWEEN str_to_date('"+req.params.objstart+"', '%M %d, %Y') AND str_to_date('"+req.params.objend+"', '%M %d, %Y') AND MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' AND YEAR(ordertable.logdate) = '"+req.params.objyear+"' GROUP BY orderdetails.productid", (err, response) => {
+            if(err){
+                throw(err);
+            }else{
+                connection.query("SELECT SUM(ordertotalprice) as totalrevenue, DATE_FORMAT(str_to_date('"+req.params.objstart+"', '%M %d, %Y'), '%M %d, %Y') as WeekStart, DATE_FORMAT(str_to_date('"+req.params.objend+"', '%M %d, %Y'), '%M %d, %Y') as WeekEnd FROM ordertable WHERE DATE(logdate) BETWEEN str_to_date('"+req.params.objstart+"', '%M %d, %Y') AND str_to_date('"+req.params.objend+"', '%M %d, %Y') AND MONTHNAME(logdate) = '"+req.params.objmonth+"' AND YEAR(logdate) = '"+req.params.objyear+"'", (err, data) => {
+                    if(err){
+                        throw(err);
+                    }else{
+                    object = {post: response, usertype: req.session.usertype, data: data};
+                    res.render("saleslog-weekly-details", object);
+                    }
+                });
+            }
+        });
+    }
+});
+app.get("/saleslog-monthlysales/:objyear/:objmonth/:objstart-:objend/saleslog-weekly-log", (req, res) => {
+    if(req.session.logged){
+        let object = {};
+        connection.query("SELECT SUM(itemquantity) as totalsales, SUM(itemtotalprice) as totalrevenue, MONTHNAME(ordertable.logdate) as month, YEAR(ordertable.logdate) as year, DAY(ordertable.logdate) as day, DATE_FORMAT(ordertable.logdate, '%M %d, %Y - %W') as date, DATE_FORMAT(str_to_date('"+req.params.objstart+"', '%M %d, %Y'), '%M %d, %Y') as WeekStart, DATE_FORMAT(str_to_date('"+req.params.objend+"', '%M %d, %Y'), '%M %d, %Y') as WeekEnd FROM orderdetails INNER JOIN ordertable ON orderdetails.orderid=ordertable.orderid WHERE DATE(ordertable.logdate) BETWEEN str_to_date('"+req.params.objstart+"', '%M %d, %Y') AND str_to_date('"+req.params.objend+"', '%M %d, %Y') AND MONTHNAME(ordertable.logdate) = '"+req.params.objmonth+"' AND YEAR(ordertable.logdate) = '"+req.params.objyear+"' GROUP BY date ORDER BY date DESC", (err, response) => {
+            if(err){
+                throw(err);
+            }else{
+                object = {post: response, usertype: req.session.usertype};
+                res.render("saleslog-weekly-log", object);
             }
         });
     }

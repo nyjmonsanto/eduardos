@@ -18,7 +18,7 @@
   <head>
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
-    <link href="css/material-dashboard.css?v=2.1.0" rel="stylesheet" />
+    <link href="/css/material-dashboard.css?v=2.1.0" rel="stylesheet" />
   </head>
   
   <body class="dark-edition">
@@ -46,7 +46,7 @@
           <div class="container-fluid">
             <div class="navbar-wrapper">
                 <div>
-                    <a href="/transaction"><button type="submit" class="btn btn-danger btn-round"><i class="material-icons">keyboard_return</i>&nbspReturn</button></a>
+                    <a href="/saleslog-monthlysales/<%= post[0].year %>/<%= post[0].month %>/saleslog-monthly-weekly-log"><button type="submit" class="btn btn-danger btn-round"><i class="material-icons">keyboard_return</i>&nbspReturn</button></a>
                 </div>
             </div>
             <div class="collapse navbar-collapse justify-content-end">
@@ -63,32 +63,33 @@
               <div class="col-md-12">
                 <div class="card card-plain">
                   <div class="card-header card-header-primary">
-                    <h4 class="card-title mt-0">Sales Log Section</h4>
-                    <p class="card-category">Manage Daily Sales</p>
-                    <div><a href="/saleslog-daily"><button type="submit" class="btn btn-info btn-round pull-right"><i class="material-icons">receipt</i>&nbspDAILY TOTAL SALES</button></a></div>
+                    <h4 class="card-title mt-0">Weekly Report Details for <%= data[0].WeekStart %> - <%= data[0].WeekEnd %></h4>
+                    <p class="card-category">Manage Weekly Sales</p>
                   </div>
                   <div class="card-body">
                     <div class="table-responsive">
                       <table class="table table-hover">
                         <thead class="text-primary">
-                          <th>Order ID</th>
-                          <th>Order Date</th>
-                          <th>Products Placed</th>
-                          <th>Customer ID</th>
+                          <th>Product ID</th>
+                          <th>Quantity</th>
+                          <th>Subtotal</th>
                         </thead>
                         <tbody>
-                          <% post.forEach((sale) => { %>
+                          <% post.forEach((sales) => { %>
                             <tr>
-                                <td><%= sale.orderid %></td>
-                                <td><%= sale.logdate %></td>
-                                <td>
-                                  <form action="/saleslog/<%= sale.orderid %>/saleslog-products">
-                                    <button type="submit" class="btn btn-warning btn-round">Check</button>
-                                  </form>
-                                </td>
-                                <td><%= sale.customerid %></td>
+                                <td><%= sales.product %></td>
+                                <td><%= sales.totalquantity %></td>
+                                <td class="text-danger">₱ <%= sales.subtotalprice %></td>
                             </tr>
                           <% }); %>
+                        </tbody>
+                        </tbody>
+                        <tbody>
+                            <tr>
+                                <td></td>
+                                <th>Total Revenue</th>
+                                <th class="text-danger">₱ <%= data[0].totalrevenue %></th>
+                            </tr>
                         </tbody>
                       </table>
                     </div>
