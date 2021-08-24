@@ -102,11 +102,13 @@
                                     </form>
                                   </td>
                                 <% };%>
+                                <%if(id == 1 || employee.employeerole != "General Manager" && employee.employeerole != "Assistant Manager"){ %>
                                   <td>
                                     <form action="/employees/<%= employee.employeeid %>/update-employee">
                                       <button type="submit" class="btn btn-warning btn-round"><i class="material-icons">mode_edit_outline</i>&nbspUpdate</button>
                                     </form>
                                   </td>
+                                <% };%>
                               </tr>
                             <% };%>
                           <% }); %>

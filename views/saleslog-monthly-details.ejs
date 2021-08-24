@@ -18,8 +18,6 @@
   <head>
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
-    <link href="css/material-dashboard.css?v=2.1.0" rel="stylesheet" />
-<!-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
     <link href="/css/material-dashboard.css?v=2.1.0" rel="stylesheet" />
   </head>
   
@@ -47,11 +45,9 @@
         <nav class="navbar navbar-expand-lg navbar-transparent navbar-absolute fixed-top " id="navigation-example">
           <div class="container-fluid">
             <div class="navbar-wrapper">
-              <%if (usertype == "Admin") {%>
-              <div>
-                <a href="/saleslog-dailysales"><button type="submit" class="btn btn-info btn-round"><i class="material-icons">receipt</i>&nbspSales Section</button></a>
-              </div>
-              <% };%>
+                <div>
+                    <a href="/saleslog-monthlysales"><button type="submit" class="btn btn-danger btn-round"><i class="material-icons">keyboard_return</i>&nbspReturn</button></a>
+                </div>
             </div>
             <div class="collapse navbar-collapse justify-content-end">
               <ul class="navbar-nav">
@@ -63,204 +59,118 @@
         <!-- End Navbar -->
         <div class="content">
           <div class="container-fluid">
-
             <div class="row">
-
-              <div class="col">
-
-                <div class="row">
-                  <div class="col">
-                    <div class="card">
-                      <div class="card-header card-header-primary">
-                        <h4 class="card-title">Enter Product ID and Order Quantity</h4>
-                      </div>
-                      <div class="card-body">
-                        <form action="/transaction" method="post">
-                          <div class="row">
-                            <div class="col-md-3">
-                              <div class="form-group">
-                                <label class="bmd-label-floating">Product ID</label>
-                                <input type="text" name="prodid" class="form-control" required>
-                              </div>
-                            </div>
-                            <div class="col-md-3">
-                              <div class="form-group">
-                                <label class="bmd-label-floating">Quantity</label>
-                                <input type="number" name="prodquant" class="form-control" required>
-                              </div>
-                            </div>
-                          </div>
-                          <button type="submit" class="btn btn-primary pull-right">ADD TO ORDERS</button>
-                          <div class="clearfix"></div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-  
-                <div class="row">
-                  <div class="col">
-                    <div class="card">
-                      <div class="card-header card-header-primary">
-                        <h4 class="card-title">Product Information</h4>
-                        <p class="card-category">Manage Orders</p>
-                      </div>
-                      <div class="card-body">
-                        <div class="table-responsive">
-                          <table class="table">
-                            <thead class="text-primary">
-                              <th>Product ID</th>
-                              <th>Name</th>
-                              <th>Price</th>
-                            </thead>
-                            <tbody>
-                              <% for (let i = 0; i < product.length; i++){%>
-                                <tr>
-                                  <td><%= product[i].productid %></td>
-                                  <td><%= product[i].productname %></td>
-                                  <td class="text-danger">₱ <%= product[i].productprice %></td>
-                                </tr>
-                              <%}%>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="card">
+              <div class="col-md-12">
+                <div class="card card-plain">
                   <div class="card-header card-header-primary">
-                    <h4 class="card-title">Transaction</h4>
-                    <p class="card-category pull-right">Employee ID : <%=employeeid%> &nbsp Order ID : <%=orderid%></p>
+                    <h4 class="card-title mt-0">Monthly Report Details for <%= data[0].date %></h4>
+                    <p class="card-category">Manage Monthly Sales</p>
                   </div>
                   <div class="card-body">
                     <div class="table-responsive">
-                      <table class="table">
+                      <table class="table table-hover">
                         <thead class="text-primary">
                           <th>Product ID</th>
                           <th>Quantity</th>
-                          <th>Total Price</th>
-                          <th>Action</th>
+                          <th>Subtotal</th>
                         </thead>
                         <tbody>
-                          <% for (let i = 0; i < values.length; i++) {%>
+                          <% post.forEach((sales) => { %>
                             <tr>
-                              <td><%= values[i].productid %></td>
-                              <td><%= values[i].itemquantity %></td>
-                              <td class="text-danger">₱ <%= values[i].itemtotalprice %></td>
-                              <td>
-                                <form action="/transaction/<%= values[i].productid %>?_method=delete" method="post">
-                                  <button type="submit" class="btn btn-danger btn-round">Remove</button>
-                                </form>
-                              </td>
+                                <td><%= sales.product %></td>
+                                <td><%= sales.totalquantity %></td>
+                                <td class="text-danger">₱ <%= sales.subtotalprice %></td>
                             </tr>
-                          <%}%>	
+                          <% }); %>
+                        </tbody>
+                        </tbody>
+                        <tbody>
                             <tr>
-                              <td colspan="3" align="right">Total</td>
-                              <td align="right">P&nbsp<%= data %></td>
+                                <td></td>
+                                <th>Total Revenue</th>
+                                <th class="text-danger">₱ <%= data[0].totalrevenue %></th>
                             </tr>
                         </tbody>
                       </table>
                     </div>
-                    <form action="/invoice" method="post">
-                      <button type="submit" class="btn btn-primary btn-round pull-right">Process</button>
-                    </form>
                   </div>
                 </div>
               </div>
-            
             </div>
           </div>
         </div>
-      </div>
-    </div>
 <!-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
-  <footer class="footer">
-    <div class="container-fluid">
-      <div class="copyright float-right" id="date">
+                <footer class="footer">
+                    <div class="container-fluid">
+                        <div class="copyright float-right" id="date">
 
-      </div>
-    </div>
-  </footer>
-  <script>
-    const x = new Date().getFullYear();
-    let date = document.getElementById('date');
-    date.innerHTML = '&copy; ' + x + date.innerHTML;
-  </script>
-  </div>
-</div>
+                        </div>
+                    </div>
+                </footer>
+                <script>
+                    const x = new Date().getFullYear();
+                    let date = document.getElementById('date');
+                    date.innerHTML = '&copy; ' + x + date.innerHTML;
+                </script>
+            </div>
+        </div>
+        
+        <div class="fixed-plugin">
+            <div class="dropdown show-dropdown">
+                <a href="#" data-toggle="dropdown">
+                    <i class="fa fa-cog fa-2x"> </i>
+                </a>
+                <ul class="dropdown-menu">
+                    <li class="header-title"> Sidebar Filters</li>
+                    <li class="adjustments-line">
+                        <a href="javascript:void(0)" class="switch-trigger active-color">
+                            <div class="badge-colors ml-auto mr-auto">
+                                <span class="badge filter badge-purple active" data-color="purple"></span>
+                                <span class="badge filter badge-azure" data-color="azure"></span>
+                                <span class="badge filter badge-green" data-color="green"></span>
+                                <span class="badge filter badge-warning" data-color="orange"></span>
+                                <span class="badge filter badge-danger" data-color="danger"></span>
+                            </div>
+                            <div class="clearfix"></div>
+                        </a>
+                    </li>
+                    <li class="header-title">Images</li>
+                    <li>
+                        <a class="img-holder switch-trigger" href="javascript:void(0)">
+                            <img src="img/sidebar-1.jpg" alt="">
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a class="img-holder switch-trigger" href="javascript:void(0)">
+                            <img src="img/sidebar-2.jpg" alt="">
+                        </a>
+                    </li>
+                    <li>
+                        <a class="img-holder switch-trigger" href="javascript:void(0)">
+                            <img src="img/sidebar-3.jpg" alt="">
+                        </a>
+                    </li>
+                    <li>
+                        <a class="img-holder switch-trigger" href="javascript:void(0)">
+                            <img src="img/sidebar-4.jpg" alt="">
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <script src="js/core/jquery.min.js"></script>
+        <script src="js/core/popper.min.js"></script>
+        <script src="js/core/bootstrap-material-design.min.js"></script>
+        <script src="https://unpkg.com/default-passive-events"></script>
+        <script src="js/plugins/perfect-scrollbar.jquery.min.js"></script>
+        
+        <script async defer src="https://buttons.github.io/buttons.js"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_HERE"></script>
+        <script src="js/plugins/chartist.min.js"></script>
+        <script src="js/plugins/bootstrap-notify.js"></script>
+        <script src="js/material-dashboard.js?v=2.1.0"></script>
 
-<!-- <div class="fixed-plugin">
-  <div class="dropdown show-dropdown">
-      <a href="#" data-toggle="dropdown">
-          <i class="fa fa-cog fa-2x"> </i>
-      </a>
-      <ul class="dropdown-menu">
-          <li class="header-title"> Sidebar Filters</li>
-          <li class="adjustments-line">
-              <a href="javascript:void(0)" class="switch-trigger active-color">
-                  <div class="badge-colors ml-auto mr-auto">
-                      <span class="badge filter badge-purple active" data-color="purple"></span>
-                      <span class="badge filter badge-azure" data-color="azure"></span>
-                      <span class="badge filter badge-green" data-color="green"></span>
-                      <span class="badge filter badge-warning" data-color="orange"></span>
-                      <span class="badge filter badge-danger" data-color="danger"></span>
-                  </div>
-                  <div class="clearfix"></div>
-              </a>
-          </li>
-          <li class="header-title">Images</li>
-          <li>
-              <a class="img-holder switch-trigger" href="javascript:void(0)">
-                  <img src="img/sidebar-1.jpg" alt="">
-              </a>
-          </li>
-          <li class="active">
-              <a class="img-holder switch-trigger" href="javascript:void(0)">
-                  <img src="img/sidebar-2.jpg" alt="">
-              </a>
-          </li>
-          <li>
-              <a class="img-holder switch-trigger" href="javascript:void(0)">
-                  <img src="img/sidebar-3.jpg" alt="">
-              </a>
-          </li>
-          <li>
-              <a class="img-holder switch-trigger" href="javascript:void(0)">
-                  <img src="img/sidebar-4.jpg" alt="">
-              </a>
-          </li>
-      </ul>
-  </div>
-</div> -->
-
-  <script src="js/core/jquery.min.js"></script>
-  <script src="js/core/popper.min.js"></script>
-  <script src="js/core/bootstrap-material-design.min.js"></script>
-  <script src="https://unpkg.com/default-passive-events"></script>
-  <script src="js/plugins/perfect-scrollbar.jquery.min.js"></script>
-
-  <script async defer src="https://buttons.github.io/buttons.js"></script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_HERE"></script>
-  <script src="js/plugins/chartist.min.js"></script>
-  <script src="js/plugins/bootstrap-notify.js"></script>
-  <script src="js/material-dashboard.js?v=2.1.0"></script>
-<!-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
-  <script src="/js/core/jquery.min.js"></script>
-  <script src="/js/core/popper.min.js"></script>
-  <script src="/js/core/bootstrap-material-design.min.js"></script>
-  <script src="https://unpkg.com/default-passive-events"></script>
-  <script src="/js/plugins/perfect-scrollbar.jquery.min.js"></script>
-
-  <script async defer src="https://buttons.github.io/buttons.js"></script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_HERE"></script>
-  <script src="/js/plugins/chartist.min.js"></script>
-  <script src="/js/plugins/bootstrap-notify.js"></script>
-  <script src="/js/material-dashboard.js?v=2.1.0"></script>
-  
   <script>
     $(document).ready(function() {
       $().ready(function() {
